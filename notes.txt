@@ -1,1 +1,6 @@
-train a model: sketch_rnn_train --log_root=training_logs --data_dir=datasets/<datasetName> --hparams="data_set=[dataset_filename.npz]"
+train a model:
+  sketch_rnn_train --log_root=training_logs --data_dir=datasets/<datasetName> --hparams="data_set=[dataset_filename.npz]"
+pip install from requirements text file: 
+  pip install -r /path/to/requirements.txt
+create a virtual environment file:
+  python3 -m venv <folder_name>

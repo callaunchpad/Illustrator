@@ -10,7 +10,7 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 # gives cross origin access to all sockets
-socketio = SocketIO(app, cors_allowed_origins="*") 
+socketio = SocketIO(app, cors_allowed_origins="*")
 ROOMS = {} # dict to track active rooms
 
 @app.route('/', methods=['GET'])
