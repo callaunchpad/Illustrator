@@ -1,0 +1,1 @@
+train a model: sketch_rnn_train --log_root=training_logs --data_dir=datasets/<datasetName> --hparams="data_set=[dataset_filename.npz]"
