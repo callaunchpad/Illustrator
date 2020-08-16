@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "training sketch rnns"
+
+python3 seq2seqVAE_train.py \
+--data_dir=datasets \
+--data_set=sketchrnn_aircraft_carrier \
+--experiment_dir=training_logs
+
+
+

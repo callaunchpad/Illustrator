@@ -1,0 +1,129 @@
+# don't need these i think
+import tensorflow as tf
+from tensorflow import keras
+
+import numpy as np
+from keras import backend as K
+
+from flask import session, request
+from flask_socketio import emit, send, join_room, leave_room
+from .. import socketio
+from collections import defaultdict
+from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
+from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
+
+
+import json
+import os
+import time
+dirname = os.path.dirname(__file__)
+# need to do this to allow usage of tf 1
+# tf.compat.v1.disable_eager_execution()
+
+# dict for tracking active rooms
+# maps roomId to list of players
+ROOMS = defaultdict(list)
+
+"""
+hanlder for when a user connects to the server
+"""
+@socketio.on('connect')
+def on_connect():
+  """Create a game lobby"""
+  print('connected!', request.sid)
+
+"""
+socket's response to receiving the drawer's canvas mouse movements
+will broadcast the data back to all other users in the same room
+also should append data that'll get processed into an image to feed into the classifier
+"""
+@socketio.on('send_draw')
+def on_send_draw(data):
+  room = data['roomId']
+  emit('receive_draw', data, room=room)
+
+"""
+handler for when a player submits a guess
+"""
+@socketio.on('send_guess')
+def on_send_guess(data):
+  room = data['roomId']
+  emit('receive_player_guess', data, room=room)
+
+"""
+handler for when a new user attempts to join a room
+"""
+@socketio.on('join')
+def on_join(data):
+  print(data)
+  room = data['roomId']
+  join_room(room)
+  ROOMS[room].append(request.sid)
+  print(ROOMS.items())
+  emit('new_player_join', {'roomId': room}, room=room)
+
+"""
+handler for when a user leaves the room they're in
+"""
+@socketio.on('leave')
+def on_leave(data):
+  print('leaving...')
+  username = data['username']
+  room = data['roomId']
+  ROOMS.pop(room)
+  leave_room(room)
+  send(username + ' has left the room.', room=room)
+
+"""
+Function for decoding a latent space factor into a sketch
+"""
+def decode(seq2seq, model_params, z_input=None, draw_mode=False, temperature=0.1, factor=0.2):
+    z = None
+    if z_input is not None:
+        z = z_input
+    sample_strokes, m = sample(seq2seq, seq_len=model_params.max_seq_len, temperature=temperature, z=z)
+    strokes = to_normal_strokes(sample_strokes)
+    # if draw_mode:
+    #     draw_strokes(strokes, factor)
+    return strokes
+
+"""
+template for sampling from a really poorly trained sketchrnn for aircraft carriers
+"""
+@socketio.on('test_sketch_rnn')
+def on_test_sketch_rnn(data):
+  room = data['roomId']
+  # load the model hparams from the model_config json
+  with open(os.path.join(dirname, '..', 'sketch_rnn_keras/training_logs/sketchrnn_aircraft_carrier_exp_15/logs/model_config.json'), 'r') as f:
+    model_params = json.load(f)
+  model_params = DotDict(model_params)
+  # instantiate a seq2seq instance
+  template_model = Seq2seqModel(model_params)
+  hd5_path = os.path.join(dirname, 'weights.01-0.27.hdf5')
+  template_model.load_trained_weights(hd5_path)
+  # create sampling models for decoding/random sketch generation
+  template_model.make_sampling_models()
+
+  # sample a latent vector and feed into the decoder for random sketch generation
+  random_latent_sample = np.expand_dims(np.random.randn(model_params.z_size),0)
+  strokes = decode(template_model, model_params, z_input=random_latent_sample)
+  print(strokes)
+
+  # transform strokes list to correct drawing data format
+  x, y = 250, 250
+  for stroke in strokes:
+    x += stroke[0]/.2
+    y += stroke[1]/.2
+    emit('receive_draw', {
+      'x': x,
+      'y': y,
+      'pX': x,
+      'pY': y,
+      'strokeWidth': 4,
+      'color': 'rgba(100%,0%,100%,0.5)'
+    }, room=room)
+    # stroke[2] is a binary indicator for if the pen was lifted or not (1 means lifted)
+    if (stroke[2] == 1):
+      time.sleep(1)
+  # need to clear the tf session between model inference calls for some reason
+  K.clear_session()

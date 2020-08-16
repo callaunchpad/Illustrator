@@ -1,4 +1,6 @@
-*/node_modules
+**/node_modules
 sketch_rnn
-*/venv
-*/__pycache__
+**/venv
+**/__pycache__
+**/datasets/
+**/training_logs

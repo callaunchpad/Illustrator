@@ -2,5 +2,21 @@ train a model:
   sketch_rnn_train --log_root=training_logs --data_dir=datasets/<datasetName> --hparams="data_set=[dataset_filename.npz]"
 pip install from requirements text file: 
   pip install -r /path/to/requirements.txt
+output current pip dependencies to requirements file:
+  pip freeze > requirements.txt
 create a virtual environment file:
   python3 -m venv <folder_name>
+
+Start the server:
+python3 server.py or
+flask run --port <port_to_run_on>
+
+CuDNNLSTM taken out of seq2seqVAE.py cuz of import errors
+
+DOCKER:
+docker build -t image_name directory <- run this in the same directory as the Dockerfile
+docker run -p host_port:forwards_to_docker_port docker-container 
+
+mounting: these do not change the image. Still need to rebuild before deploying
+docker run -p host_port:forwards_to_docker_port -v /full_path_to_folder_volume:container_directory_to_mount docker-container 
+

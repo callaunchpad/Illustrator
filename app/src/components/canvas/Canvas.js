@@ -1,16 +1,19 @@
 import React from 'react'
 import Sketch from "react-p5";
-import socketIOClient from "socket.io-client";
 
-import ENDPOINTS from '../../endpoints';
 import './Canvas.css';
-
+// the global socket instance for this app
+import socket from '../../socket'
 
 export default function Canvas() {
-  const socket = socketIOClient(ENDPOINTS.root);
   // set to true when it is the user's turn
   const [canDraw, setCanDraw] = React.useState(true)
+  // text for the controlled form component. Contains the player's guess for the word
+  const [guessText, setGuessText] = React.useState('')
+
+  // When the component mounts, set up socket listeners
   React.useEffect(() => {
+    console.log("using effect")
     const asyncUseEffect = async () => {
       // verify our websocket connection is established
       socket.on('connect', function() {
@@ -24,16 +27,27 @@ export default function Canvas() {
       socket.on('disconnect', function() {
         console.log("websocket disconnected")
       })
+
+      socket.on('receive_player_guess', function(data) {
+        console.log("received guess: ", data)
+        alert(data.guessText)
+      })
+
+      socket.on('new_player_join', function(data) {
+        console.log('new player joined!', data)
+      })
     }
     asyncUseEffect()
   }, [])
 
+  // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
 
     // Callback function
     socket.on('receive_draw', data => {
+      console.log(data)
       p5.stroke(data.color)
       p5.strokeWeight(data.strokeWidth)
       p5.line(data.x, data.y, data.pX, data.pY)
@@ -43,7 +57,9 @@ export default function Canvas() {
     p5.createCanvas(500, 500).parent(canvasParentRef);
   };
 
-
+  // function that is run when the user drags their mouse on the canvas
+  // sends the mouse data to the server, which gets broadcasted to all players
+  // in the same room
   const mouseDragged = (p5) => {
     // only allow user to draw if it is their turn
     if (!canDraw) {
@@ -59,6 +75,7 @@ export default function Canvas() {
     sendmouse(p5.mouseX, p5.mouseY, p5.pmouseX, p5.pmouseY, color, strokeWidth)
   }
 
+  // utility function for sending mouse stroke info to the server
   function sendmouse(x, y, pX, pY, color, strokeWidth) {
     const data = {
       x,
@@ -67,6 +84,7 @@ export default function Canvas() {
       pY,
       color,
       strokeWidth,
+      roomId: 1
     }
     socket.emit('send_draw', data)
   }
@@ -78,17 +96,42 @@ export default function Canvas() {
     // please use normal variables or class properties for these purposes
   };
 
+  // runs on form submission. Sends player's guess to server, which broadcasts it to all other players
+  // in the same room
+  const guessWord = (e) => {
+    e.preventDefault();
+    console.log('guessed: ', guessText)
+    const data = {guessText, roomId: 1}
+    socket.emit('send_guess', data)
+    console.log('emitted: ', guessText)
+    // emit a websocket event
+    setGuessText('')
+  }
+
+  // return a really crappy Canvas component
   return (
     <div>
       <p>Choose color (# hex)</p>
-      <input type="text" name="custom_color" placeholder="#FFFFFF" id="pickcolor" class="call-picker" />
+      {/* <input type="text" name="custom_color" placeholder="#FFFFFF" id="pickcolor" class="call-picker" /> */}
       <div id="color-holder" class="color-holder call-picker"></div>
       <button id="color-btn">Change color</button>
       <br />
       <p>Choose stroke width</p>
-      <input type="text" name="stroke_width" placeholder="4" id="stroke-width-picker" class="stroke_width_picker" />
+      {/* <input type="text" name="stroke_width" placeholder="4" id="stroke-width-picker" class="stroke_width_picker" /> */}
       <button id="stroke-btn">Change stroke width</button>
+
+      {/* This is the p5 react component */}
       <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged}/>
+      
+      <form onSubmit={guessWord}>
+        <label>
+          Guess:
+          <input type="text" value={guessText} onChange={(e) => setGuessText(e.target.value)} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+      <button onClick={() => socket.emit('test_sketch_rnn', {roomId: 1})}>Test Sketch Rnn</button>
+      <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button>
     </div>
   )
 }
