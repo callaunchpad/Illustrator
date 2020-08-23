@@ -6,5 +6,15 @@ python3 seq2seqVAE_train.py \
 --data_set=sketchrnn_aircraft_carrier \
 --experiment_dir=training_logs
 
+python3 seq2seqVAE_train.py \
+--data_dir=datasets \
+--data_set=sketchrnn_airplane \
+--experiment_dir=training_logs
+
+python3 seq2seqVAE_train.py \
+--data_dir=datasets \
+--data_set=sketchrnn_alarm_clock \
+--experiment_dir=training_logs
+
 
 

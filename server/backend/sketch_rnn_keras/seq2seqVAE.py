@@ -23,7 +23,7 @@ def get_default_hparams():
         # Experiment Params:
         'is_training': True,  # train mode (relevant only for accelerated LSTM mode)
         'data_set': 'cat',  # datasets to train on
-        'epochs': 1,  # how many times to go over the full train set (on average, since batches are drawn randomly)
+        'epochs': 50,  # how many times to go over the full train set (on average, since batches are drawn randomly)
         'save_every': None, # Batches between checkpoints creation and validation set evaluation. Once an epoch if None.
         'batch_size': 100,  # Minibatch size. Recommend leaving at 100.
         'accelerate_LSTM': False,  # Flag for using CuDNNLSTM layer, gpu + tf backend only
