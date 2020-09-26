@@ -1,3 +1,9 @@
+/**
+ * None of this is actually used at the moment in the frontend code!
+ * We may come back to this code as a reference especially for handling color
+ * selection
+ */
+
 let color = '#FFF';
 let strokeWidth = 4;
 let socket;
@@ -7,16 +13,6 @@ function setup() {
 	const cv = createCanvas(800, 600)
 	cv.position(600, 100)
   cv.background(0)
-  
-  	// Start the socket connection
-	// socket = io.connect('http://localhost:3000')
-
-	// // Callback function
-	// socket.on('mouse', data => {
-	// 	stroke(data.color)
-	// 	strokeWeight(data.strokeWidth)
-	// 	line(data.x, data.y, data.px, data.py)
-	// })
 
 	// Getting our buttons and the holder through the p5.js dom
 	const color_picker = select('#pickcolor')
@@ -52,17 +48,3 @@ function mouseDragged() {
   // send the mouse coords
   sendmouse(mouseX, mouseY, pmouseX, pmouseY)
 }
-
-// Sending data to the socket
-// function sendmouse(x, y, pX, pY) {
-// 	const data = {
-// 		x: x,
-// 		y: y,
-// 		px: pX,
-// 		py: pY,
-// 		color: color,
-// 		strokeWidth: strokeWidth,
-// 	}
-
-// 	socket.emit('mouse', data)
-// }

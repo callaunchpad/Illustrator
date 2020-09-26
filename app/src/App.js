@@ -1,10 +1,14 @@
+/**
+ * The App component is the usually the "root" of a React app.
+ * It defines the overall layout of the application and any global state variables
+ * are typically set here.
+ */
+
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import socketIOClient from "socket.io-client";
 
 import Canvas from './components/canvas/Canvas'
-import ENDPOINTS from './endpoints';
 const axios = require('axios');
 
 function App() {

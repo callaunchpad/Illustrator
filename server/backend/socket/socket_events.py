@@ -1,4 +1,7 @@
-# don't need these i think
+"""
+This file contains all the handlers for socket events. In other words, we define
+the logic for how our server will respond to certain socket events triggered by the client
+"""
 import tensorflow as tf
 from tensorflow import keras
 
@@ -88,18 +91,18 @@ def decode(seq2seq, model_params, z_input=None, draw_mode=False, temperature=0.1
     return strokes
 
 """
-template for sampling from a really poorly trained sketchrnn for aircraft carriers
+template for sampling from a really poorly trained sketchrnn for airplanes
 """
 @socketio.on('test_sketch_rnn')
 def on_test_sketch_rnn(data):
   room = data['roomId']
   # load the model hparams from the model_config json
-  with open(os.path.join(dirname, '..', 'sketch_rnn_keras/training_logs/sketchrnn_aircraft_carrier_exp_15/logs/model_config.json'), 'r') as f:
+  with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
     model_params = json.load(f)
   model_params = DotDict(model_params)
   # instantiate a seq2seq instance
   template_model = Seq2seqModel(model_params)
-  hd5_path = os.path.join(dirname, 'weights.01-0.27.hdf5')
+  hd5_path = os.path.join(dirname, 'model_weights/airplane.hdf5')
   template_model.load_trained_weights(hd5_path)
   # create sampling models for decoding/random sketch generation
   template_model.make_sampling_models()
@@ -112,8 +115,8 @@ def on_test_sketch_rnn(data):
   # transform strokes list to correct drawing data format
   x, y = 250, 250
   for stroke in strokes:
-    x += stroke[0]/.2
-    y += stroke[1]/.2
+    x += stroke[0]/.1
+    y += stroke[1]/.1
     emit('receive_draw', {
       'x': x,
       'y': y,
@@ -124,6 +127,6 @@ def on_test_sketch_rnn(data):
     }, room=room)
     # stroke[2] is a binary indicator for if the pen was lifted or not (1 means lifted)
     if (stroke[2] == 1):
-      time.sleep(1)
+      time.sleep(.01)
   # need to clear the tf session between model inference calls for some reason
   K.clear_session()

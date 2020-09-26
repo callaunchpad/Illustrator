@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "training sketch rnns"
+echo "training sketch rnns..."
 
 python3 seq2seqVAE_train.py \
 --data_dir=datasets \

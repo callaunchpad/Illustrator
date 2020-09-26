@@ -1,3 +1,8 @@
+/**
+ * React component that sets up the socket listeners and contains
+ * the canvas for drawing and guessing words
+ */
+
 import React from 'react'
 import Sketch from "react-p5";
 
@@ -108,7 +113,7 @@ export default function Canvas() {
     setGuessText('')
   }
 
-  // return a really crappy Canvas component
+  // return a really crappy Canvas component that'll be beautiful later
   return (
     <div>
       <p>Choose color (# hex)</p>

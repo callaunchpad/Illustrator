@@ -6,8 +6,8 @@ from enum import Enum
 class Game:
   def __init__(self):
     self.players = []
-    self.state = State()
+    self.state = GameState()
 
-class State: 
+class GameState: 
   def __init__(self):
     self.status = 'ended'

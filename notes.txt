@@ -11,7 +11,8 @@ Start the server:
 python3 server.py or
 flask run --port <port_to_run_on>
 
-CuDNNLSTM taken out of seq2seqVAE.py cuz of import errors
+CuDNNLSTM will likely raise some issues if you try to train the sketch_rnn locally with accelerate_LSTM set to True.
+It should be fine on CSUA though.
 
 DOCKER:
 docker build -t image_name directory <- run this in the same directory as the Dockerfile
