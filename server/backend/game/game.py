@@ -4,8 +4,10 @@ Classes for defining a game instance
 from enum import Enum 
 import random
 
+from .. import socketio
+
 class Game:
-  def __init__(self, id, num_rounds=3):
+  def __init__(self, id, num_rounds=3, socketio_instance):
     self.players = []
     self.state = GameState()
     self.deck = []
@@ -13,6 +15,7 @@ class Game:
     self.num_rounds = num_rounds   # initialized by game creator
     self.passed_rounds = 0
     self.id = id
+    self.socketio_instance = socketio_instance
 
   def playGame(self):
     while self.passed_rounds != self.num_rounds:
@@ -20,7 +23,7 @@ class Game:
     endGame()
 
   def endGame():
-    # TODO socket that shows leaderboard
+    self.showLeaderboard()
 
     self.status = 'ended'
 
@@ -28,6 +31,9 @@ class Game:
     round = Round()
     round.runRound()
     self.passed_rounds += 1
+  
+  def showLeaderboard(self):
+    # TODO display leaderboard via socket
 
 class GameState: 
   def __init__(self):
@@ -57,10 +63,12 @@ class Round(Game):
 
   def chooseDrawing(self):
     choices = random.choices(self.deck, 3)
+
     # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
+    self.socketio_instance.emit("choose_word", {'data': choices, room=})
     # return choice
 
-class Drawing:
+class Drawing(Round):
   def __init__(self, artist, choice):
     self.guesses = []  # incorrect guesses
     self.correct_players = []
@@ -68,6 +76,10 @@ class Drawing:
     self.choice = choice
   
   def draw(self):
-    #start_draw
+    # start_draw stuff
+
+    self.showLeaderboard()
+
+  
 
   

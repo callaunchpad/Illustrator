@@ -27,6 +27,8 @@ dirname = os.path.dirname(__file__)
 # maps roomId to list of players
 ROOMS = defaultdict(list)
 
+ROOMS_GAMES = {}
+
 """
 hanlder for when a user connects to the server
 """
@@ -43,6 +45,7 @@ also should append data that'll get processed into an image to feed into the cla
 @socketio.on('send_draw')
 def on_send_draw(data):
   room = data['roomId']
+  # TODO: alter game state for when drawing occurs
   emit('receive_draw', data, room=room)
 
 """
@@ -51,7 +54,20 @@ handler for when a player submits a guess
 @socketio.on('send_guess')
 def on_send_guess(data):
   room = data['roomId']
+  # TODO: alter game state for when guess occurs
   emit('receive_player_guess', data, room=room)
+
+"""
+hanlder for when a user creates a game
+"""
+@socketio.on('create_game')
+def on_create_game(data):
+  """Create a game lobby"""
+  room = generateRoomId()  # TODO: How to generate random room ID
+  join_room(room)
+  ROOMS[room].append(request.sid)
+  ROOMS_GAMES[room] = Game(room, data["num_rounds"], socketio) # need num_rounds from client
+  emit("new_game", {'roomId': room, "num_rounds": num_rounds}, room=room)
 
 """
 handler for when a new user attempts to join a room
