@@ -65,7 +65,7 @@ class Round(Game):
     choices = random.choices(self.deck, 3)
 
     # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.socketio_instance.emit("choose_word", {'data': choices, room=})
+    self.socketio_instance.emit("choose_word", {'data': choices, room=self.id})
     # return choice
 
 class Drawing(Round):
