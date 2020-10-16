@@ -15,7 +15,7 @@ from collections import defaultdict
 from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
 from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
 
-
+from ..game.game import *
 import json
 import os
 import time
@@ -63,11 +63,16 @@ hanlder for when a user creates a game
 @socketio.on('create_game')
 def on_create_game(data):
   """Create a game lobby"""
-  room = generateRoomId()  # TODO: How to generate random room ID
+  print(data)
+  room = data["roomId"]  # TODO: How to generate random room ID
   join_room(room)
   ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, data["num_rounds"], socketio) # need num_rounds from client
-  emit("new_game", {'roomId': room, "num_rounds": num_rounds}, room=room)
+  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"]) # need num_rounds from client
+  print("ROOMS:")
+  print(ROOMS.items())
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  emit("new_game", data, room=room)
 
 """
 handler for when a new user attempts to join a room

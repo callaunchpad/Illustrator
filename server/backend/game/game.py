@@ -7,7 +7,7 @@ import random
 from .. import socketio
 
 class Game:
-  def __init__(self, id, num_rounds=3, socketio_instance):
+  def __init__(self, id, socketio_instance, num_rounds=3):
     self.players = []
     self.state = GameState()
     self.deck = []
@@ -34,6 +34,7 @@ class Game:
   
   def showLeaderboard(self):
     # TODO display leaderboard via socket
+    None
 
 class GameState: 
   def __init__(self):
@@ -65,7 +66,7 @@ class Round(Game):
     choices = random.choices(self.deck, 3)
 
     # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.socketio_instance.emit("choose_word", {'data': choices, room=self.id})
+    self.socketio_instance.emit("choose_word", {'data': choices}, room=self.id)
     # return choice
 
 class Drawing(Round):
