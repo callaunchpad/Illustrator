@@ -66,12 +66,15 @@ def on_create_game(data):
   print(data)
   room = data["roomId"]  # TODO: How to generate random room ID
   join_room(room)
-  ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"]) # need num_rounds from client
+  # ROOMS[room].append(request.sid)
+  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=request.sid) # need num_rounds from client
   print("ROOMS:")
   print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
+
   emit("new_game", data, room=room)
 
 """

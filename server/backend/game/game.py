@@ -7,8 +7,8 @@ import random
 from .. import socketio
 
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3):
-    self.players = []
+  def __init__(self, id, socketio_instance, num_rounds=3, players=[]):
+    self.players = players
     self.state = GameState()
     self.deck = []
     self.leaderboard = []     # list of ordered tuples

@@ -3,7 +3,7 @@ import unittest
 import json
 class SampleTestCase(unittest.TestCase):
   def test_simple_get(self):
-    print("TEST_SIMPLE_GET")
+    print("TEST_SIMPLE_GET\n")
     tester = app.test_client(self)
     response = tester.get('/')
     self.assertEqual(response.status_code, 200)
@@ -12,7 +12,7 @@ class SampleTestCase(unittest.TestCase):
     self.assertTrue(response_json['test'])
 
   def test_simple_socket_msg(self):
-    print("TEST_SIMPLE_SOCKET_MSG")
+    print("TEST_SIMPLE_SOCKET_MSG\n")
     app_tester = app.test_client(self)
     socket_tester = socketio.test_client(app, flask_test_client=app_tester)
     socket_tester.emit('join', {'roomId': 1})
@@ -26,7 +26,7 @@ class SampleTestCase(unittest.TestCase):
     self.assertEqual(recvd[0]['args'][0], {'roomId': 1})
 
   def test_create_game(self):
-    print("TEST_CREATE_GAME")
+    print("TEST_CREATE_GAME\n")
     app_tester = app.test_client(self)
     socket_tester = socketio.test_client(app, flask_test_client=app_tester)
     socket_tester.emit('join', {'roomId': 1})
