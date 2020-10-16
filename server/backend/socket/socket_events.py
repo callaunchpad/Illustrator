@@ -35,7 +35,7 @@ hanlder for when a user connects to the server
 @socketio.on('connect')
 def on_connect():
   """Create a game lobby"""
-  print('connected!', request.sid)
+  print('connected:', request.sid)
 
 """
 socket's response to receiving the drawer's canvas mouse movements
@@ -63,11 +63,11 @@ hanlder for when a user creates a game
 @socketio.on('create_game')
 def on_create_game(data):
   """Create a game lobby"""
-  print(data)
+  print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
   join_room(room)
-  # ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=request.sid) # need num_rounds from client
+  ROOMS[room].append(request.sid)
+  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
   print("ROOMS:")
   print(ROOMS.items())
   print("ROOMS_GAMES:")
@@ -82,11 +82,17 @@ handler for when a new user attempts to join a room
 """
 @socketio.on('join')
 def on_join(data):
-  print(data)
+  print("data: " + str(data))
   room = data['roomId']
   join_room(room)
   ROOMS[room].append(request.sid)
+  ROOMS_GAMES[room].addPlayer(request.sid)
+  print("ROOMS:")
   print(ROOMS.items())
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
   emit('new_player_join', {'roomId': room}, room=room)
 
 """

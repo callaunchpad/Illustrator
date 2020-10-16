@@ -22,10 +22,13 @@ class Game:
       playRound()
     endGame()
 
-  def endGame():
+  def endGame(self):
     self.showLeaderboard()
 
     self.status = 'ended'
+  
+  def addPlayer(self, id):
+    self.players.append(id)
 
   def playRound(self):
     round = Round()
