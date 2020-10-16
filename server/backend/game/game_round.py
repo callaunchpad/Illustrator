@@ -1,7 +1,7 @@
 """
 Class for defining a game round
 """
-from .game import Game
+from .game_class import *
 from .utils import Timer
 import random
 

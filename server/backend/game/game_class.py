@@ -2,7 +2,7 @@
 Classes for defining a game instance
 """
 from enum import Enum
-from .game_round import Round, Drawing
+from .game_round import *
 from .utils import Timer
 
 from .. import socketio

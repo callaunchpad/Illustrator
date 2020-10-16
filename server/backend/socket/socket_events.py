@@ -15,7 +15,7 @@ from collections import defaultdict
 from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
 from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
 
-from ..game.game import *
+from ..game.game_round import *
 import json
 import os
 import time
