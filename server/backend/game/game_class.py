@@ -2,7 +2,7 @@
 Classes for defining a game instance
 """
 from enum import Enum
-from .game_round import *
+# from .game_round import Round, Drawing
 from .utils import Timer
 
 from .. import socketio
@@ -31,7 +31,7 @@ class Game:
     self.players.append(id)
 
   def playRound(self):
-    game_round = Round()
+    game_round = Round(self)
     game_round.runRound()
     self.curr_round += 1
   
@@ -46,3 +46,52 @@ class GameState:
   def __init__(self):
     self.status = 'started'
 
+class Round:
+  def __init__(self, game):
+    self.players_drawn = []
+    self.players_copy = game.players.copy()
+    self.game = game
+  
+  def runRound(self):
+    while len(self.players_drawn) < len(self.game.players):
+      player = self.choosePlayer()
+      self.next_drawing(player)
+  
+  def next_drawing(self, player):
+    choice = player.chooseDrawing()
+    drawing = Drawing(player, choice)
+    drawing.draw()
+    self.players_drawn.append(player)
+
+  def choosePlayer(self):
+    player = self.players_copy[0]   # choose player who hasn't drawn
+    del self.players_copy[0]   # delete from possible players to draw
+    return player[1]    # return player object
+
+  def chooseDrawing(self):
+    choices = random.choices(self.deck, 3)
+    # TODO remove those choices from self.deck
+
+    # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
+    self.socketio_instance.emit("choose_word", {'data': choices}, room=self.id)
+    return 'default'
+
+"""
+Class for defining a drawing
+"""
+class Drawing:
+  def __init__(self, artist, round, choice, seconds=30):
+    self.guesses = []  # incorrect guesses
+    self.correct_players = []
+    self.artist = artist
+    self.choice = choice
+    self.timer = Timer(seconds)
+    self.round = round
+  
+  def draw(self):
+    # Wait for 3 seconds before beginning the drawing
+    Timer.wait_time(3)
+    while self.timer.check() or len(self.correct_players) < len(self.players):
+      self.showLeaderboard()
+
+      # TODO start_draw stuff with socket responses

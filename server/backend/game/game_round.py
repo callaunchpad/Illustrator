@@ -1,7 +1,7 @@
 """
 Class for defining a game round
 """
-from .game_class import *
+# from .game_class import Game
 from .utils import Timer
 import random
 
@@ -11,7 +11,7 @@ class Round(Game):
     self.players_copy = self.players.copy()
   
   def runRound(self):
-    while len(self.players_drawn) < len(self.players):
+    while len(self.players_drawn) < len(game.players):
       player = self.choosePlayer()
       self.next_drawing(player)
   
