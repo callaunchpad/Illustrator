@@ -61,7 +61,7 @@ def on_send_guess(data):
   # TODO: alter game state for when guess occurs
   answer = "David"
   if guess == answer:
-    game.game_round
+    game.game_round.drawing.correct_players.append(request.sid)
     socketio.emit('receive_answer', data, room=room)
 
   else:

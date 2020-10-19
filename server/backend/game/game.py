@@ -88,23 +88,27 @@ class Round:
 Class for defining a drawing
 """
 class Drawing:
-  def __init__(self, artist, round, choice, seconds=30):
+  def __init__(self, artist, round, choice, seconds=1):
     self.guesses = []  # incorrect guesses
     self.correct_players = []
     self.artist = artist
     self.choice = choice
-    self.timer = Timer(seconds)
+    self.timer = Timer(seconds + 3)  # to account for later wait_time stall
     self.round = round
   
   def draw(self):
     # Wait for 3 seconds before beginning the drawing
     Timer.wait_time(3)
 
-    # Wait for 90 seconds as people guess, will later implement lowering / canceling 
+    # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess
-    Timer.wait_time(90)
-    while self.timer.check() or len(self.correct_players) < len(self.players):
+    
+    while self.timer.check() and len(self.correct_players) < len(self.round.game.players):
       # self.showLeaderboard()
 
-
+      None
       # TODO start_draw stuff with socket responses
+
+  def addPoints(player):
+    # add points to correct player
+    return

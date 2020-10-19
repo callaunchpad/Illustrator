@@ -10,7 +10,7 @@ class Timer:
   
   def check(self):
     curr_time = time.perf_counter()
-    if curr_time - self.start_time <= 30:
+    if curr_time - self.start_time <= self.seconds:
       return True
     return False
 
