@@ -2,19 +2,22 @@
 Classes for defining a game instance
 """
 from enum import Enum
+# from .game_round import Round, Drawing
 from .utils import Timer
-import random
+import numpy as np
+
 from .. import socketio
 
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3, players=[]):
+  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","banana","corn","dog"]):
     self.players = players
     self.state = GameState()
-    self.deck = []
+    self.deck = deck
     self.leaderboard = []     # list of ordered tuples
     self.num_rounds = num_rounds   # initialized by game creator
     self.curr_round = 1
     self.id = id
+    self.game_round = None
     self.socketio_instance = socketio_instance
 
   def playGame(self):
@@ -25,13 +28,14 @@ class Game:
   def endGame(self):
     self.showLeaderboard()
     self.state.status = 'ended'
+    self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
   
   def addPlayer(self, id):
     self.players.append(id)
 
   def playRound(self):
-    game_round = Round()
-    game_round.runRound()
+    self.game_round = Round(self)
+    self.game_round.runRound()
     self.curr_round += 1
   
   def showLeaderboard(self):
@@ -45,45 +49,47 @@ class GameState:
   def __init__(self):
     self.status = 'started'
 
-class Round(Game):
-  def __init__(self):
+class Round:
+  def __init__(self, game):
     self.players_drawn = []
-    self.players_copy = self.players.copy()
+    self.players_copy = game.players.copy()
+    self.game = game
   
   def runRound(self):
-    while len(self.players_drawn) < len(self.players):
+    while len(self.players_drawn) < len(self.game.players):
       player = self.choosePlayer()
       self.next_drawing(player)
   
   def next_drawing(self, player):
-    choice = player.chooseDrawing()
-    drawing = Drawing(player, choice)
-    drawing.draw()
+    choice = self.chooseDrawing(player)
+    drawing = Drawing(player,self,choice)
+    # drawing.draw()
     self.players_drawn.append(player)
 
   def choosePlayer(self):
     player = self.players_copy[0]   # choose player who hasn't drawn
-    del self.players_copy[0]   # delete from possible players to draw
-    return player[1]    # return player object
+    self.players_copy.remove(player)  # delete from possible players to draw
+    return player    # return player object
 
-  def chooseDrawing(self):
-    choices = random.choices(self.deck, 3)
+  def chooseDrawing(self, player):
+    options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck
 
-    # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.socketio_instance.emit("choose_word", {'data': choices}, room=self.id)
+    # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
+    self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
     return 'default'
 
 """
 Class for defining a drawing
 """
-class Drawing(Round):
-  def __init__(self, artist, choice, seconds=30):
+class Drawing:
+  def __init__(self, artist, round, choice, seconds=30):
     self.guesses = []  # incorrect guesses
     self.correct_players = []
     self.artist = artist
     self.choice = choice
     self.timer = Timer(seconds)
+    self.round = round
   
   def draw(self):
     # Wait for 3 seconds before beginning the drawing

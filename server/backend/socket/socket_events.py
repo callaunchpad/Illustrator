@@ -74,16 +74,40 @@ def on_create_game(data):
   room = data['room'] # TODO generate random room ID
   # Use default join_room function: puts the user in a room
   join_room(room)
-  socketio.emit('join_room_msg', data, room=room)
-  emit("new_game", data, room=room)
+
+  # may not be necessary
   # ROOMS[room].append(request.sid)
-  # ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
+  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
   # print("ROOMS:")
   # print(ROOMS.items())
-  # print("ROOMS_GAMES:")
-  # print(ROOMS_GAMES.items())
-  # print("ROOMS_GAMES Players List:")
-  # print(ROOMS_GAMES[1].players)
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
+  socketio.emit('join_room_msg', data, room=room)
+  # emit("new_game", data, room=room)
+  
+
+
+"""
+hanlder for when a user starts a game
+"""
+@socketio.on('start_game')
+def on_start_game(data):
+  """Start a created game"""
+  print("data: " + str(data))
+  room = data["roomId"]  # TODO: How to generate random room ID
+  ROOMS_GAMES[room].playGame()
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
+  print("ROOMS_GAMES Round")
+  print(ROOMS_GAMES[1].game_round)
+  print("ROOMS_GAMES Round Players_drawn")
+  print(ROOMS_GAMES[1].game_round.players_drawn)
+  socketio.emit('new_game', data, room=room)
+  # emit("new_game", data, room=room)
 
 """
 handler for when a new user attempts to join a room
@@ -95,18 +119,18 @@ def on_join(data):
   room = data['room']
   username = data['username']
   join_room(room)
-  socketio.emit('new_player_join', data, room=room)
-  # send(username + ' has joined the room.', room=room)
-  
+
+  # may not be necessary
   # ROOMS[room].append(request.sid)
-  # ROOMS_GAMES[room].addPlayer(request.sid)
+  ROOMS_GAMES[room].addPlayer(request.sid)
   # print("ROOMS:")
   # print(ROOMS.items())
-  # print("ROOMS_GAMES:")
-  # print(ROOMS_GAMES.items())
-  # print("ROOMS_GAMES Players List:")
-  # print(ROOMS_GAMES[1].players)
-  
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
+  socketio.emit('new_player_join', data, room=room)
+  # emit('new_player_join', {'roomId': room}, room=room)
 
 """
 handler for when a user leaves the room they're in
@@ -115,8 +139,10 @@ handler for when a user leaves the room they're in
 def on_leave(data):
   print('leaving...')
   username = data['username']
-  room = data['room']
-  ROOMS.pop(room)
+  room = data['roomId']
+  # ROOMS.pop(room)
+
+  ROOMS_GAMES[room].players.pop(request.sid)
   leave_room(room)
   socketio.emit('player_leave', data, room=room)
   # send(username + ' has left the room.', room=room)
