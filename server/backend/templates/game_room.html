@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+
+    <title>React App</title>
+  </head>
+  <body>
+    <h1>Welcome to room {{ room }}</h1>
+
+    <div id="guesses"></div>
+    
+    <form id="guess_input_form">
+        <input type="text" id="guess_input" placeholder="Enter your guess here">
+        <button type="submit">Send</button>
+    </form>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script>
+        const socket = io.connect("http://127.0.0.1:5000");
+    
+        socket.on('connect', function () {
+            socket.emit('join', {
+                username: "{{ username }}",
+                room: "{{ room }}"
+            });
+    
+            let guess_input = document.getElementById('guess_input');
+    
+            document.getElementById('guess_input_form').onsubmit = function (e) {
+                e.preventDefault();
+                let guess = guess_input.value.trim();
+                if (guess.length) {
+                    socket.emit('send_guess', {
+                        username: "{{ username }}",
+                        room: "{{ room }}",
+                        guess: guess
+                    })
+                }
+                guess_input.value = '';
+                guess_input.focus();
+            }
+        });
+    
+        window.onbeforeunload = function () {
+            socket.emit('leave', {
+                username: "{{ username }}",
+                room: "{{ room }}"
+            })
+        };
+    
+        socket.on('receive_guess', function (data) {
+            console.log(data);
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username}:&nbsp;</b> ${data.guess}`;
+            document.getElementById('guesses').appendChild(newNode);
+        });
+
+        socket.on('receive_answer', function (data) {
+            console.log(data);
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username} guessed the word!</b>`;
+            document.getElementById('guesses').appendChild(newNode);
+        });
+    
+        socket.on('new_player_join', function (data) {
+            console.log(data);
+            if (data.username !== "{{ username }}") {
+                const newNode = document.createElement('div');
+                newNode.innerHTML = `<b>${data.username}</b> has joined the room`;
+                document.getElementById('guesses').appendChild(newNode);
+            }
+        });
+    
+        socket.on('player_leave', function (data) {
+            console.log(data);
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username}</b> has left the room`;
+            document.getElementById('guesses').appendChild(newNode);
+        });
+
+
+    </script> 
+
+</html>

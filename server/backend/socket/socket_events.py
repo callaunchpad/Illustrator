@@ -15,7 +15,7 @@ from collections import defaultdict
 from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
 from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
 
-from ..game.game_round import *
+from ..game.game import *
 import json
 import os
 import time
@@ -24,10 +24,11 @@ dirname = os.path.dirname(__file__)
 # tf.compat.v1.disable_eager_execution()
 
 # dict for tracking active rooms
-# maps roomId to list of players
+# maps room to list of players
 ROOMS = defaultdict(list)
 
 ROOMS_GAMES = {}
+
 
 """
 hanlder for when a user connects to the server
@@ -44,7 +45,7 @@ also should append data that'll get processed into an image to feed into the cla
 """
 @socketio.on('send_draw')
 def on_send_draw(data):
-  room = data['roomId']
+  room = data['room']
   # TODO: alter game state for when drawing occurs
   emit('receive_draw', data, room=room)
 
@@ -53,47 +54,59 @@ handler for when a player submits a guess
 """
 @socketio.on('send_guess')
 def on_send_guess(data):
-  room = data['roomId']
+  room = data['room']
+  guess = data['guess']
   # TODO: alter game state for when guess occurs
-  emit('receive_player_guess', data, room=room)
+  answer = "David"
+  if guess == answer:
+    socketio.emit('receive_answer', data, room=room)
+  else:
+    socketio.emit('receive_guess', data, room=room)
 
 """
-hanlder for when a user creates a game
+handler for when a user creates a game
+  data: username
 """
 @socketio.on('create_game')
 def on_create_game(data):
   """Create a game lobby"""
-  print("data: " + str(data))
-  room = data["roomId"]  # TODO: How to generate random room ID
+  print('data: ' + str(data))
+  room = data['room'] # TODO generate random room ID
+  # Use default join_room function: puts the user in a room
   join_room(room)
-  ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
-  print("ROOMS:")
-  print(ROOMS.items())
-  print("ROOMS_GAMES:")
-  print(ROOMS_GAMES.items())
-  print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES[1].players)
-
+  socketio.emit('join_room_msg', data, room=room)
   emit("new_game", data, room=room)
+  # ROOMS[room].append(request.sid)
+  # ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
+  # print("ROOMS:")
+  # print(ROOMS.items())
+  # print("ROOMS_GAMES:")
+  # print(ROOMS_GAMES.items())
+  # print("ROOMS_GAMES Players List:")
+  # print(ROOMS_GAMES[1].players)
 
 """
 handler for when a new user attempts to join a room
+  data: username, room
 """
 @socketio.on('join')
 def on_join(data):
   print("data: " + str(data))
-  room = data['roomId']
+  room = data['room']
+  username = data['username']
   join_room(room)
-  ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room].addPlayer(request.sid)
-  print("ROOMS:")
-  print(ROOMS.items())
-  print("ROOMS_GAMES:")
-  print(ROOMS_GAMES.items())
-  print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES[1].players)
-  emit('new_player_join', {'roomId': room}, room=room)
+  socketio.emit('new_player_join', data, room=room)
+  # send(username + ' has joined the room.', room=room)
+  
+  # ROOMS[room].append(request.sid)
+  # ROOMS_GAMES[room].addPlayer(request.sid)
+  # print("ROOMS:")
+  # print(ROOMS.items())
+  # print("ROOMS_GAMES:")
+  # print(ROOMS_GAMES.items())
+  # print("ROOMS_GAMES Players List:")
+  # print(ROOMS_GAMES[1].players)
+  
 
 """
 handler for when a user leaves the room they're in
@@ -102,10 +115,11 @@ handler for when a user leaves the room they're in
 def on_leave(data):
   print('leaving...')
   username = data['username']
-  room = data['roomId']
+  room = data['room']
   ROOMS.pop(room)
   leave_room(room)
-  send(username + ' has left the room.', room=room)
+  socketio.emit('player_leave', data, room=room)
+  # send(username + ' has left the room.', room=room)
 
 """
 Function for decoding a latent space factor into a sketch
@@ -125,7 +139,7 @@ template for sampling from a really poorly trained sketchrnn for airplanes
 """
 @socketio.on('test_sketch_rnn')
 def on_test_sketch_rnn(data):
-  room = data['roomId']
+  room = data['room']
   # load the model hparams from the model_config json
   with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
     model_params = json.load(f)
