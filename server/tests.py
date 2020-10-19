@@ -18,23 +18,26 @@ class SampleTestCase(unittest.TestCase):
     socket_tester.emit('create_game', {'roomId': 1, "num_rounds":4})
     recvd = socket_tester.get_received()
     print('recvd list looks like this after create_game', recvd)
+    print()
 
     app_tester2 = app.test_client(self)
     socket_tester2 = socketio.test_client(app, flask_test_client=app_tester2)
     socket_tester2.emit('join', {'roomId': 1})
-    recvd = socket_tester.get_received()
+    recvd2 = socket_tester2.get_received()
     # the recvd response contains information pertaining to what the server sends to the client
     # in response to a socket message
     print('recvd list looks like this after join:', recvd)
+    print()
 
     socket_tester.emit('send_guess', {'roomId': 1})
     recvd = socket_tester.get_received()
     print('recvd list looks like this after send_guess:', recvd)
+    print()
     self.assertEqual(recvd[0]['args'][0], {'roomId': 1})
 
     socket_tester.emit("start_game", {'roomId': 1})
-    recvd = socket_tester.get_received()
-    print('recvd list looks like this after send_guess:', recvd)
+    # recvd = socket_tester.get_received()
+    # print('recvd list looks like this after send_guess:', recvd)
 
 
   def test_create_game(self):

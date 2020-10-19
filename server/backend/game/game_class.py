@@ -4,6 +4,7 @@ Classes for defining a game instance
 from enum import Enum
 # from .game_round import Round, Drawing
 from .utils import Timer
+import numpy as np
 
 from .. import socketio
 
@@ -11,11 +12,12 @@ class Game:
   def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","banana","corn","dog"]):
     self.players = players
     self.state = GameState()
-    self.deck = []
+    self.deck = deck
     self.leaderboard = []     # list of ordered tuples
     self.num_rounds = num_rounds   # initialized by game creator
     self.curr_round = 1
     self.id = id
+    self.game_round = None
     self.socketio_instance = socketio_instance
 
   def playGame(self):
@@ -31,8 +33,8 @@ class Game:
     self.players.append(id)
 
   def playRound(self):
-    game_round = Round(self)
-    game_round.runRound()
+    self.game_round = Round(self)
+    self.game_round.runRound()
     self.curr_round += 1
   
   def showLeaderboard(self):
@@ -58,22 +60,22 @@ class Round:
       self.next_drawing(player)
   
   def next_drawing(self, player):
-    choice = player.chooseDrawing()
-    drawing = Drawing(player, choice)
-    drawing.draw()
+    choice = self.chooseDrawing(player)
+    drawing = Drawing(player,self,choice)
+    # drawing.draw()
     self.players_drawn.append(player)
 
   def choosePlayer(self):
     player = self.players_copy[0]   # choose player who hasn't drawn
-    del self.players_copy[0]   # delete from possible players to draw
-    return player[1]    # return player object
+    self.players_copy.remove(player)  # delete from possible players to draw
+    return player    # return player object
 
-  def chooseDrawing(self):
-    choices = random.choices(self.deck, 3)
+  def chooseDrawing(self, player):
+    options = np.random.choice(self.game.deck, 3)
     # TODO remove those choices from self.deck
 
     # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.socketio_instance.emit("choose_word", {'data': choices}, room=self.id)
+    self.game.socketio_instance.emit("choose_word", {'data': options, 'player': player}, room=self.game.id)
     return 'default'
 
 """
