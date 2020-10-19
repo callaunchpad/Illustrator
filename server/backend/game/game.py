@@ -54,6 +54,8 @@ class Round:
     self.players_drawn = []
     self.players_copy = game.players.copy()
     self.game = game
+    self.drawing = ""
+    self.choice = ""
   
   def runRound(self):
     while len(self.players_drawn) < len(self.game.players):
@@ -62,8 +64,8 @@ class Round:
   
   def next_drawing(self, player):
     choice = self.chooseDrawing(player)
-    drawing = Drawing(player,self,choice)
-    # drawing.draw()
+    self.drawing = Drawing(player,self,choice)
+    self.drawing.draw()
     self.players_drawn.append(player)
 
   def choosePlayer(self):
@@ -75,9 +77,12 @@ class Round:
     options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck
 
+    self.choice = ""
+
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
     self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
-    return 'default'
+    Timer.wait_time(3)
+    return self.choice
 
 """
 Class for defining a drawing
@@ -94,7 +99,12 @@ class Drawing:
   def draw(self):
     # Wait for 3 seconds before beginning the drawing
     Timer.wait_time(3)
+
+    # Wait for 90 seconds as people guess, will later implement lowering / canceling 
+    # clock as players get word and all players guess
+    Timer.wait_time(90)
     while self.timer.check() or len(self.correct_players) < len(self.players):
-      self.showLeaderboard()
+      # self.showLeaderboard()
+
 
       # TODO start_draw stuff with socket responses

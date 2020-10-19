@@ -54,12 +54,16 @@ handler for when a player submits a guess
 """
 @socketio.on('send_guess')
 def on_send_guess(data):
-  room = data['room']
+  room = data['roomId']
   guess = data['guess']
+
+  game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
   answer = "David"
   if guess == answer:
+    game.game_round
     socketio.emit('receive_answer', data, room=room)
+
   else:
     socketio.emit('receive_guess', data, room=room)
 
@@ -71,7 +75,7 @@ handler for when a user creates a game
 def on_create_game(data):
   """Create a game lobby"""
   print('data: ' + str(data))
-  room = data['room'] # TODO generate random room ID
+  room = data['roomId'] # TODO generate random room ID
   # Use default join_room function: puts the user in a room
   join_room(room)
 
@@ -116,7 +120,7 @@ handler for when a new user attempts to join a room
 @socketio.on('join')
 def on_join(data):
   print("data: " + str(data))
-  room = data['room']
+  room = data['roomId']
   username = data['username']
   join_room(room)
 
@@ -146,6 +150,18 @@ def on_leave(data):
   leave_room(room)
   socketio.emit('player_leave', data, room=room)
   # send(username + ' has left the room.', room=room)
+
+
+@socketio.on("receive_word")
+def on_receive_word(data):
+  # username = data['username']
+
+  # we will need these:
+  room = data['roomId']
+  word = data['word']
+
+  game = ROOMS_GAMES[room]
+  game.game_round.choice = word
 
 """
 Function for decoding a latent space factor into a sketch
