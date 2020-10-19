@@ -66,14 +66,34 @@ def on_create_game(data):
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
   join_room(room)
-  ROOMS[room].append(request.sid)
+
+  # may not be necessary
+  # ROOMS[room].append(request.sid)
   ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
-  print("ROOMS:")
-  print(ROOMS.items())
+  # print("ROOMS:")
+  # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES[1].players)
+
+  emit("new_game", data, room=room)
+
+
+"""
+hanlder for when a user starts a game
+"""
+@socketio.on('start_game')
+def on_create_game(data):
+  """Start a created game"""
+  print("data: " + str(data))
+  room = data["roomId"]  # TODO: How to generate random room ID
+  ROOMS_GAMES[room].playGame()
+  print("ROOMS_GAMES:")
+  print(ROOMS_GAMES.items())
+  print("ROOMS_GAMES Players List:")
+  print(ROOMS_GAMES[1].players)
+  print("ROOMS_GAMES ")
 
   emit("new_game", data, room=room)
 
@@ -85,10 +105,12 @@ def on_join(data):
   print("data: " + str(data))
   room = data['roomId']
   join_room(room)
-  ROOMS[room].append(request.sid)
+
+  # may not be necessary
+  # ROOMS[room].append(request.sid)
   ROOMS_GAMES[room].addPlayer(request.sid)
-  print("ROOMS:")
-  print(ROOMS.items())
+  # print("ROOMS:")
+  # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
@@ -103,7 +125,9 @@ def on_leave(data):
   print('leaving...')
   username = data['username']
   room = data['roomId']
-  ROOMS.pop(room)
+  # ROOMS.pop(room)
+
+  ROOMS_GAMES[room].players.pop(request.sid)
   leave_room(room)
   send(username + ' has left the room.', room=room)
 

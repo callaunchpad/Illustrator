@@ -8,7 +8,7 @@ from .utils import Timer
 from .. import socketio
 
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3, players=[]):
+  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","banana","corn","dog"]):
     self.players = players
     self.state = GameState()
     self.deck = []
