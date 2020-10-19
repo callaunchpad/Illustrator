@@ -109,6 +109,7 @@ class Drawing:
       None
       # TODO start_draw stuff with socket responses
 
-  def addPoints(player):
-    # add points to correct player
+  def correctGuess(player):
+    # add correct points to correct player
+    # add player to self.correct_players
     return
