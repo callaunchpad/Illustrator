@@ -78,6 +78,7 @@ def on_create_game(data):
   print(ROOMS_GAMES[1].players)
 
   emit("new_game", data, room=room)
+  
 
 
 """
@@ -98,7 +99,7 @@ def on_create_game(data):
   print("ROOMS_GAMES Round Players_drawn")
   print(ROOMS_GAMES[1].game_round.players_drawn)
 
-  emit("new_game", data, room=room)
+  # emit("new_game", data, room=room)
 
 """
 handler for when a new user attempts to join a room

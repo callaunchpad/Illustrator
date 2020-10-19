@@ -28,6 +28,7 @@ class Game:
   def endGame(self):
     self.showLeaderboard()
     self.state.status = 'ended'
+    self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
   
   def addPlayer(self, id):
     self.players.append(id)
@@ -71,11 +72,11 @@ class Round:
     return player    # return player object
 
   def chooseDrawing(self, player):
-    options = np.random.choice(self.game.deck, 3)
+    options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck
 
-    # TODO SOCKET: choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.game.socketio_instance.emit("choose_word", {'data': options, 'player': player}, room=self.game.id)
+    # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
+    self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
     return 'default'
 
 """
