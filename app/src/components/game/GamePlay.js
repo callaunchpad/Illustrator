@@ -1,7 +1,7 @@
 import React from 'react';
 import GlobalContext from '../../context';
 import Canvas from './canvas/Canvas';
-import socket from '../../socket';
+// import socket from '../../socket';
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
@@ -10,7 +10,7 @@ export default function GamePlay(props) {
     e.preventDefault();
     let guess = guess.trim();
     if (guess.length) {
-      socket.emit('send_guess', {
+      props.socket.emit('send_guess', {
         username,
         room: roomId,
         guess: guess
@@ -32,7 +32,7 @@ export default function GamePlay(props) {
         />
         <button type="submit">Send</button>
       </form>
-      <Canvas />
+      <Canvas socket={props.socket}/>
     </div>
   )
 }

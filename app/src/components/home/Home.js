@@ -11,6 +11,10 @@ function Home(props) {
     setRoomId,
     setUsername,
   } = props;
+
+  React.useEffect(() => {
+    console.log("home use effect");
+  }, []);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {

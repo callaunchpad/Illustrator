@@ -8,13 +8,22 @@ import Sketch from "react-p5";
 
 import './Canvas.css';
 // the global socket instance for this app
-import socket from '../../../socket';
+// import socket from '../../../socket';
 
 export default function Canvas(props) {
+  console.log('running canvas')
+  React.useEffect(() => {
+    console.log("canvase use effect")
+    return () => {
+      console.log("cleaning up canvas");
+    }
+  }, []);
+
   // set to true when it is the user's turn
   const [canDraw, setCanDraw] = React.useState(true);
   // text for the controlled form component. Contains the player's guess for the word
   const [guessText, setGuessText] = React.useState('');
+  const { socket } = props;
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
@@ -99,13 +108,13 @@ export default function Canvas(props) {
       {/* This is the p5 react component */}
       <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged}/>
       
-      <form onSubmit={guessWord}>
+      {/* <form onSubmit={guessWord}>
         <label>
           Guess:
           <input type="text" value={guessText} onChange={(e) => setGuessText(e.target.value)} />
         </label>
         <input type="submit" value="Submit" />
-      </form>
+      </form> */}
       <button onClick={() => socket.emit('test_sketch_rnn', {roomId: 1})}>Test Sketch Rnn</button>
       <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button>
     </div>

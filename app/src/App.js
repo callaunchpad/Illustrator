@@ -10,8 +10,6 @@ import { BrowserRouter, Route, Switch, useHistory, withRouter } from 'react-rout
 import './App.css';
 import logo from './logo.svg';
 
-// the global socket instance for this app
-import socket from './socket';
 import GlobalContext from './context';
 import Home from './components/home/Home';
 import GameContainer from './components/game/GameContainer';
