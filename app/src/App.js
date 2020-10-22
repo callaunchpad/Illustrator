@@ -5,29 +5,44 @@
  */
 
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Route, Switch, useHistory, withRouter } from 'react-router-dom';
 
-import Canvas from './components/canvas/Canvas'
+import './App.css';
+import logo from './logo.svg';
+
+// the global socket instance for this app
+import socket from './socket';
+import GlobalContext from './context';
+import Home from './components/home/Home';
+import GameContainer from './components/game/GameContainer';
 const axios = require('axios');
 
-function App() {
+function App(props) {
+  const [username, setUsername] = React.useState('');
+  const [roomId, setRoomId]     = React.useState('');
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <Canvas />
+        <GlobalContext.Provider value={{
+          username,
+          roomId,
+        }}>
+          <BrowserRouter>
+            <Switch>
+              <Route exact path='/'>
+                <Home
+                  username={username}
+                  roomId={roomId}
+                  setUsername={setUsername}
+                  setRoomId={setRoomId}
+                />
+              </Route>
+              <Route path='/game'>
+                <GameContainer />
+              </Route>
+            </Switch>
+          </BrowserRouter>
+        </GlobalContext.Provider>
       </header>
     </div>
   );

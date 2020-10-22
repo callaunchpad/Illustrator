@@ -8,42 +8,13 @@ import Sketch from "react-p5";
 
 import './Canvas.css';
 // the global socket instance for this app
-import socket from '../../socket'
+import socket from '../../../socket';
 
-export default function Canvas() {
+export default function Canvas(props) {
   // set to true when it is the user's turn
-  const [canDraw, setCanDraw] = React.useState(true)
+  const [canDraw, setCanDraw] = React.useState(true);
   // text for the controlled form component. Contains the player's guess for the word
-  const [guessText, setGuessText] = React.useState('')
-
-  // When the component mounts, set up socket listeners
-  React.useEffect(() => {
-    console.log("using effect")
-    const asyncUseEffect = async () => {
-      // verify our websocket connection is established
-      socket.on('connect', function() {
-        console.log('Websocket connected!');
-      });
-
-      socket.on('receive_guess', function(guess) {
-        console.log(`received guess: ${guess}`)
-      })
-
-      socket.on('disconnect', function() {
-        console.log("websocket disconnected")
-      })
-
-      socket.on('receive_player_guess', function(data) {
-        console.log("received guess: ", data)
-        alert(data.guessText)
-      })
-
-      socket.on('new_player_join', function(data) {
-        console.log('new player joined!', data)
-      })
-    }
-    asyncUseEffect()
-  }, [])
+  const [guessText, setGuessText] = React.useState('');
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
@@ -117,12 +88,12 @@ export default function Canvas() {
   return (
     <div>
       <p>Choose color (# hex)</p>
-      {/* <input type="text" name="custom_color" placeholder="#FFFFFF" id="pickcolor" class="call-picker" /> */}
-      <div id="color-holder" class="color-holder call-picker"></div>
+      <input type="text" name="custom_color" placeholder="#FFFFFF" id="pickcolor" className="call-picker" />
+      <div id="color-holder" className="color-holder call-picker"></div>
       <button id="color-btn">Change color</button>
       <br />
       <p>Choose stroke width</p>
-      {/* <input type="text" name="stroke_width" placeholder="4" id="stroke-width-picker" class="stroke_width_picker" /> */}
+      <input type="text" name="stroke_width" placeholder="4" id="stroke-width-picker" className="stroke_width_picker" />
       <button id="stroke-btn">Change stroke width</button>
 
       {/* This is the p5 react component */}
