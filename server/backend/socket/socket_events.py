@@ -27,6 +27,9 @@ dirname = os.path.dirname(__file__)
 # maps room to list of players
 ROOMS = defaultdict(list)
 
+# consider using a default dict. You can avoid key errors this way.
+# if the key doesn't exist it'll automatically create a default instance of a class
+# ROOMS_GAMES = defaultdict(lambda: Game()) 
 ROOMS_GAMES = {}
 
 

@@ -16,10 +16,16 @@ def home():
   # should have two buttons, create room and join room
   # connect socket events to the buttons: create_game and join
 
-@routes_blueprint.route('/game')
+# define whether this is for creating or joining a game from the home page
+@routes_blueprint.route('/game', methods=['POST'])
 def game():
-  username = request.args.get('username')
-  roomId = request.args.get('roomId')
+  print("request is: ", request)
+  username = request.json.get('username')
+  roomId = request.json.get('roomId')
   if username and roomId:
-    return render_template('game_room.html', username=username, room=roomId)
-  return redirect(url_for('routes_blueprint.home'))
+    return {
+      'success': True,
+    }
+  # if username and roomId:
+  #   return render_template('game_room.html', username=username, room=roomId)
+  # return redirect(url_for('routes_blueprint.home'))
