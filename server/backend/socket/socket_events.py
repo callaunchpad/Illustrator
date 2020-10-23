@@ -27,10 +27,8 @@ dirname = os.path.dirname(__file__)
 # maps room to list of players
 ROOMS = defaultdict(list)
 
-# consider using a default dict. You can avoid key errors this way.
-# if the key doesn't exist it'll automatically create a default instance of a class
-# ROOMS_GAMES = defaultdict(lambda: Game()) 
-ROOMS_GAMES = {}
+# ROOMS_GAMES = {}
+ROOMS_GAMES = {'1': Game('1', socketio, 4)}
 
 
 """
@@ -48,7 +46,8 @@ also should append data that'll get processed into an image to feed into the cla
 """
 @socketio.on('send_draw')
 def on_send_draw(data):
-  room = data['room']
+  print("SENDING DRAWING")
+  room = data['roomId']
   # TODO: alter game state for when drawing occurs
   emit('receive_draw', data, room=room)
 
@@ -57,6 +56,7 @@ handler for when a player submits a guess
 """
 @socketio.on('send_guess')
 def on_send_guess(data):
+  print("SENDING GUESS")
   room = data['roomId']
   guess = data['guess']
 
@@ -77,6 +77,7 @@ handler for when a user creates a game
 @socketio.on('create_game')
 def on_create_game(data):
   """Create a game lobby"""
+  print("CREATING GAME SOCKET")
   print('data: ' + str(data))
   room = data['roomId'] # TODO generate random room ID
   # Use default join_room function: puts the user in a room
@@ -102,18 +103,19 @@ hanlder for when a user starts a game
 @socketio.on('start_game')
 def on_start_game(data):
   """Start a created game"""
+  print("START GAME SOCKET")
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
+  socketio.emit('new_game', data, room=room)
   ROOMS_GAMES[room].playGame()
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES[1].players)
+  print(ROOMS_GAMES['1'].players)
   print("ROOMS_GAMES Round")
-  print(ROOMS_GAMES[1].game_round)
+  print(ROOMS_GAMES['1'].game_round)
   print("ROOMS_GAMES Round Players_drawn")
-  print(ROOMS_GAMES[1].game_round.players_drawn)
-  socketio.emit('new_game', data, room=room)
+  print(ROOMS_GAMES['1'].game_round.players_drawn)
   # emit("new_game", data, room=room)
 
 """
@@ -122,6 +124,7 @@ handler for when a new user attempts to join a room
 """
 @socketio.on('join')
 def on_join(data):
+  print("JOINING GAME SOCKET")
   print("data: " + str(data))
   room = data['roomId']
   username = data['username']
@@ -129,13 +132,14 @@ def on_join(data):
 
   # may not be necessary
   # ROOMS[room].append(request.sid)
+  
   ROOMS_GAMES[room].addPlayer(request.sid)
   # print("ROOMS:")
   # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES[1].players)
+  print(ROOMS_GAMES['1'].players)
   socketio.emit('new_player_join', data, room=room)
   # emit('new_player_join', {'roomId': room}, room=room)
 
@@ -144,7 +148,7 @@ handler for when a user leaves the room they're in
 """
 @socketio.on('leave')
 def on_leave(data):
-  print('leaving...')
+  print('leaving... SOCKET')
   username = data['username']
   room = data['roomId']
   # ROOMS.pop(room)
@@ -158,6 +162,7 @@ def on_leave(data):
 @socketio.on("receive_word")
 def on_receive_word(data):
   # username = data['username']
+  print("RECEIVED_WORD SOCKET")
 
   # we will need these:
   room = data['roomId']
@@ -184,7 +189,7 @@ template for sampling from a really poorly trained sketchrnn for airplanes
 """
 @socketio.on('test_sketch_rnn')
 def on_test_sketch_rnn(data):
-  room = data['room']
+  room = data['roomId']
   # load the model hparams from the model_config json
   with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
     model_params = json.load(f)

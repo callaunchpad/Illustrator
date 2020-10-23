@@ -21,19 +21,23 @@ class Game:
     self.socketio_instance = socketio_instance
 
   def playGame(self):
+    print("STARTING GAME...")
     while self.curr_round != self.num_rounds:
       self.playRound()
     self.endGame()
 
   def endGame(self):
+    print("ENDING GAME...")
     self.showLeaderboard()
     self.state.status = 'ended'
     self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
+    self.curr_round = 1
   
   def addPlayer(self, id):
     self.players.append(id)
 
   def playRound(self):
+    print("STARTING ROUND" + str(self.curr_round))
     self.game_round = Round(self)
     self.game_round.runRound()
     self.curr_round += 1
@@ -81,6 +85,7 @@ class Round:
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
     self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
+    print("CHOOSING WORD")
     Timer.wait_time(3)
     return self.choice
 
@@ -98,7 +103,7 @@ class Drawing:
   
   def draw(self):
     # Wait for 3 seconds before beginning the drawing
-    Timer.wait_time(3)
+    Timer.wait_time(1)
 
     # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess

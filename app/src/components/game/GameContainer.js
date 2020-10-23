@@ -15,12 +15,15 @@ import End from './screens/End';
 // import socket from '../../socket';
 import Lobby from './Lobby';
 import TimesUp from './screens/TimesUp';
+import StartGame from './screens/StartGame';
 import GamePlay from './GamePlay';
 import GlobalContext from '../../context';
 
 const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
 const NO_MODAL  = 'none';
+const GAME_START  = 'game_start';
+const CHOOSE_WORD = "choose_word"
 
 function GameContainer(props) {
   console.log('running game container')
@@ -28,6 +31,8 @@ function GameContainer(props) {
   const [gameStart, setGameStart] = React.useState(false);
   const [modalToDisplay, setModalToDisplay] = React.useState(NO_MODAL);
   const [guesses, setGuesses] = React.useState([]);
+
+  var global_choices = []
 
   const globalContext = React.useContext(GlobalContext);
   // console.log(props.location.state.roomId);
@@ -49,6 +54,7 @@ function GameContainer(props) {
         username,
         roomId,
       });
+      console.log("done")
     });
   
     socket.on('receive_guess', function(guess) {
@@ -61,7 +67,9 @@ function GameContainer(props) {
   
     socket.on('receive_guess', function (data) {
       console.log(data);
-      const newGuesses = [...guesses, {username: data.username, guess: data.guess}];
+      // const newGuesses = [...guesses, {username: data.username, guess: data.guess}];
+      guesses.push(data.guess)
+      const newGuesses = guesses 
       setGuesses(newGuesses);
     });
   
@@ -88,6 +96,25 @@ function GameContainer(props) {
       // document.getElementById('guesses').appendChild(newNode);
     });
 
+    socket.on('new_game', function (data) {
+      console.log(data);
+      setModalToDisplay(GAME_START)
+      
+    });
+
+    socket.on('end_game', function (data) {
+      console.log("end game client")
+      console.log(data);
+      setModalToDisplay(GAME_END)
+      
+    });
+
+    socket.on('choose_word', function (data) {
+      console.log('Choosing Word');
+      global_choices = data.options
+      setModalToDisplay(CHOOSE_WORD)
+    });
+
     // disconnect the socket when component unmounts
     return () => socket.disconnect();
   }, []);
@@ -107,6 +134,10 @@ function GameContainer(props) {
         return <End />;
       case TIME_UP:
         return <TimesUp />;
+      case GAME_START:
+        return <StartGame />;
+      case CHOOSE_WORD:
+        return <div id="choices">{global_choices}</div>;
       default:
         return (<span>Something's wrong with the screen display logic :(</span>);
     }
