@@ -4,6 +4,7 @@ Classes for defining a game instance
 from enum import Enum
 # from .game_round import Round, Drawing
 from .utils import Timer
+import eventlet
 import numpy as np
 
 from .. import socketio
@@ -86,6 +87,8 @@ class Round:
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
     self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
+    # flushes the emit message
+    eventlet.sleep(0)
     print("CHOOSING WORD")
     Timer.wait_time(3)
     return self.choice

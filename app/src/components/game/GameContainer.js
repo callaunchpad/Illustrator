@@ -26,7 +26,6 @@ const GAME_START  = 'game_start';
 const CHOOSE_WORD = "choose_word"
 
 function GameContainer(props) {
-  console.log('running game container')
   const [socket, setSocket] = React.useState(socketIOClient(ENDPOINTS.root));
   const [gameStart, setGameStart] = React.useState(false);
   const [modalToDisplay, setModalToDisplay] = React.useState(NO_MODAL);
@@ -47,7 +46,6 @@ function GameContainer(props) {
 
   React.useEffect(() => {
     setGameStart(true);
-    console.log("using effect....");
     socket.on('connect', function() {
       console.log(`Websocket connected! Now joining room: ${roomId}`);
       socket.emit('join', {

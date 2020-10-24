@@ -11,12 +11,8 @@ import './Canvas.css';
 // import socket from '../../../socket';
 
 export default function Canvas(props) {
-  console.log('running canvas')
   React.useEffect(() => {
-    console.log("canvase use effect")
-    return () => {
-      console.log("cleaning up canvas");
-    }
+    return () => {}
   }, []);
 
   // set to true when it is the user's turn
@@ -38,7 +34,6 @@ export default function Canvas(props) {
       p5.line(data.x, data.y, data.pX, data.pY)
     })
 
-    console.log("setting up...")
     p5.createCanvas(500, 500).parent(canvasParentRef);
   };
 
