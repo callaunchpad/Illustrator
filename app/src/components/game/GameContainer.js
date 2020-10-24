@@ -99,6 +99,11 @@ function GameContainer(props) {
     socket.on('new_game', function (data) {
       console.log(data);
       setModalToDisplay(GAME_START)
+
+      socket.emit('start', {
+        username,
+        roomId,
+      });
       
     });
 

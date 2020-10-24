@@ -107,16 +107,27 @@ def on_start_game(data):
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
   socketio.emit('new_game', data, room=room)
-  ROOMS_GAMES[room].playGame()
-  print("ROOMS_GAMES:")
-  print(ROOMS_GAMES.items())
-  print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES['1'].players)
-  print("ROOMS_GAMES Round")
-  print(ROOMS_GAMES['1'].game_round)
-  print("ROOMS_GAMES Round Players_drawn")
-  print(ROOMS_GAMES['1'].game_round.players_drawn)
+  # ROOMS_GAMES[room].playGame()
+  # print("ROOMS_GAMES:")
+  # print(ROOMS_GAMES.items())
+  # print("ROOMS_GAMES Players List:")
+  # print(ROOMS_GAMES['1'].players)
+  # print("ROOMS_GAMES Round")
+  # print(ROOMS_GAMES['1'].game_round)
+  # print("ROOMS_GAMES Round Players_drawn")
+  # print(ROOMS_GAMES['1'].game_round.players_drawn)
   # emit("new_game", data, room=room)
+
+"""
+hanlder for when a user starts a game
+"""
+@socketio.on('start')
+def on_start_game(data):
+  """Start a created game"""
+  print("START SOCKET")
+  print("data: " + str(data))
+  room = data["roomId"]  # TODO: How to generate random room ID
+  ROOMS_GAMES[room].playGame()
 
 """
 handler for when a new user attempts to join a room

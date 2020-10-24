@@ -32,6 +32,7 @@ class Game:
     self.state.status = 'ended'
     self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
     self.curr_round = 1
+    self.players = []
   
   def addPlayer(self, id):
     self.players.append(id)
