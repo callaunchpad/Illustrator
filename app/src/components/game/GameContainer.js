@@ -18,6 +18,8 @@ import TimesUp from './screens/TimesUp';
 import StartGame from './screens/StartGame';
 import GamePlay from './GamePlay';
 import GlobalContext from '../../context';
+import { CardActionArea } from '@material-ui/core';
+import ChooseWord from './screens/ChooseWord';
 
 const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
@@ -26,12 +28,27 @@ const GAME_START  = 'game_start';
 const CHOOSE_WORD = "choose_word"
 
 function GameContainer(props) {
-  const [socket, setSocket] = React.useState(socketIOClient(ENDPOINTS.root));
+  const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
   const [gameStart, setGameStart] = React.useState(false);
   const [modalToDisplay, setModalToDisplay] = React.useState(NO_MODAL);
-  const [guesses, setGuesses] = React.useState([]);
 
-  var global_choices = []
+  const [messages, setMessages] = React.useState([]); // list of strings that are displayed in the canvas chat
+  const [players, setPlayers]   = React.useState([]); // list of players that joined
+  const [guesses, setGuesses]   = React.useState([]); // list of player names and their guesses
+  const [answered, setAnswered] = React.useState([]); // list of players that guessed the word
+  const [wordChoices, setWordChoices] = React.useState([]); // list of word choices to be displayed
+
+  const messagesRef    = React.useRef(messages);
+  const playersRef     = React.useRef(players);
+  const guessesRef     = React.useRef(guesses);
+  const answeredRef    = React.useRef(answered);
+
+  React.useEffect(() => {
+    messagesRef.current    = messages;
+    playersRef.current     = players;
+    guessesRef.current     = guesses;
+    answeredRef.current    = answered;
+  }, [messages, players, guesses, answered]);
 
   const globalContext = React.useContext(GlobalContext);
   // console.log(props.location.state.roomId);
@@ -45,6 +62,7 @@ function GameContainer(props) {
   }
 
   React.useEffect(() => {
+    console.log("using effect");
     setGameStart(true);
     socket.on('connect', function() {
       console.log(`Websocket connected! Now joining room: ${roomId}`);
@@ -55,76 +73,73 @@ function GameContainer(props) {
       console.log("done")
     });
   
-    socket.on('receive_guess', function(guess) {
-      console.log(`received guess: ${guess}`)
-    });
-  
     socket.on('disconnect', function() {
       console.log("websocket disconnected")
     });
   
     socket.on('receive_guess', function (data) {
       console.log(data);
-      // const newGuesses = [...guesses, {username: data.username, guess: data.guess}];
-      guesses.push(data.guess)
-      const newGuesses = guesses 
-      setGuesses(newGuesses);
+      setMessages(messagesRef.current.concat(`${data.username}: ${data.guess}`));
     });
   
-    socket.on('receive_answer', function (data) {
+    socket.on('receive_answer', (data) => {
       console.log(data);
-      // const newNode = document.createElement('div');
-      // newNode.innerHTML = `<b>${data.username} guessed the word!</b>`;
-      // document.getElementById('guesses').appendChild(newNode);
+      setAnswered([...answeredRef.current, {username: data.username}]);
+      setMessages([...messagesRef.current, `${data.username} guessed the word!`]);
     });
   
     socket.on('new_player_join', function (data) {
       console.log(data);
-      // if (data.username !== "{{ username }}") {
-      //     const newNode = document.createElement('div');
-      //     newNode.innerHTML = `<b>${data.username}</b> has joined the room`;
-      //     document.getElementById('guesses').appendChild(newNode);
-      // }
+      setMessages(messagesRef.current.concat(`${data.username} has joined the room :D`));
     });
   
     socket.on('player_leave', function (data) {
       console.log(data);
-      // const newNode = document.createElement('div');
-      // newNode.innerHTML = `<b>${data.username}</b> has left the room`;
-      // document.getElementById('guesses').appendChild(newNode);
+      setMessages(messagesRef.current.concat(`${data.username} has left the room :(`));
     });
 
     socket.on('new_game', function (data) {
       console.log(data);
       setModalToDisplay(GAME_START)
-
       socket.emit('start', {
         username,
         roomId,
       });
-      
     });
 
     socket.on('end_game', function (data) {
-      console.log("end game client")
+      console.log("end game client");
       console.log(data);
-      setModalToDisplay(GAME_END)
-      
+      setModalToDisplay(GAME_END);
     });
 
     socket.on('choose_word', function (data) {
-      console.log('Choosing Word');
-      global_choices = data.options
-      setModalToDisplay(CHOOSE_WORD)
+      console.log('Choosing Word', data.options);
+      setWordChoices(data.options);
+      setModalToDisplay(CHOOSE_WORD);
     });
 
     // disconnect the socket when component unmounts
-    return () => socket.disconnect();
+    return () => {
+      console.log("disconnecting...");
+      socket.emit('leave', {
+        username,
+        roomId,
+      });
+      socket.disconnect();
+    };
   }, []);
 
   const displayScreen = () => {
     if (gameStart) {
-      return <GamePlay socket={socket} guesses={guesses}/>;
+      return (
+        <GamePlay
+          socket={socket}
+          guesses={guesses}
+          messages={messages}
+          setMessages={setMessages}
+        />
+      );
     }
     return <Lobby />;
   }
@@ -140,7 +155,7 @@ function GameContainer(props) {
       case GAME_START:
         return <StartGame />;
       case CHOOSE_WORD:
-        return <div id="choices">{global_choices}</div>;
+        return <ChooseWord choices={wordChoices}/>;
       default:
         return (<span>Something's wrong with the screen display logic :(</span>);
     }

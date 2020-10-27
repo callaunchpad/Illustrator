@@ -102,6 +102,14 @@ export default function Canvas(props) {
 
       {/* This is the p5 react component */}
       <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged}/>
+      <div id='chat' className='container'>
+        <span>this is the chat</span>
+        <ul>
+          { props.messages.map((msg, idx) => {
+            return (<li key={idx}>{msg}</li>)
+          }) }
+        </ul>
+      </div>
       
       {/* <form onSubmit={guessWord}>
         <label>
@@ -111,7 +119,7 @@ export default function Canvas(props) {
         <input type="submit" value="Submit" />
       </form> */}
       <button onClick={() => socket.emit('test_sketch_rnn', {roomId: 1})}>Test Sketch Rnn</button>
-      <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button>
+      {/* <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button> */}
     </div>
   )
 }

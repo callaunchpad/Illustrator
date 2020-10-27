@@ -2,4 +2,4 @@
 from backend import app, socketio
 
 if __name__ == '__main__':
-  socketio.run(app, debug=True, port=5000)
+  socketio.run(app, debug=False, port=5000)

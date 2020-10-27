@@ -50,3 +50,11 @@ p {
 button {
   margin-left: 1rem;
 }
+
+#chat {
+  width: 500px;
+  height: 200px;
+  border-width: 5px;
+  border-color: white;
+  border-style: dotted;
+}

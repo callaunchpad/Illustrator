@@ -24,6 +24,7 @@ class Game:
   def playGame(self):
     print("STARTING GAME...")
     while self.curr_round != self.num_rounds:
+      print('curr_round is: ', self.curr_round)
       self.playRound()
     self.endGame()
 

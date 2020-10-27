@@ -169,7 +169,6 @@ def on_leave(data):
   socketio.emit('player_leave', data, room=room)
   # send(username + ' has left the room.', room=room)
 
-
 @socketio.on("receive_word")
 def on_receive_word(data):
   # username = data['username']

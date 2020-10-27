@@ -7,12 +7,14 @@ export default function GamePlay(props) {
   const globalContext = React.useContext(GlobalContext);
   const { username, roomId } = globalContext;
   const sendGuess = (e) => {
+    // props.setMessages(props.messages.concat("hello"));
+    // console.log('messages: ', props.messages);
     e.preventDefault();
     let g = guess.trim();
     if (g.length) {
       props.socket.emit('send_guess', {
         username,
-        roomId: roomId,
+        roomId,
         guess: g
       });
     }
@@ -26,9 +28,6 @@ export default function GamePlay(props) {
   }
   return (
     <div className='gameplay container'>
-      <ul id="guesses">
-        {props.guesses}
-      </ul>
       <form onSubmit={sendGuess}>
         <input
           type="text"
@@ -42,7 +41,10 @@ export default function GamePlay(props) {
       <form onSubmit={startGame}>
         <button type="submit">Start Game</button>
       </form>
-      <Canvas socket={props.socket}/>
+      <Canvas
+        socket={props.socket}
+        messages={props.messages}
+      />
     </div>
   )
 }
