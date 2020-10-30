@@ -9,12 +9,12 @@ import Sketch from "react-p5";
 import './Canvas.css';
 // the global socket instance for this app
 // import socket from '../../../socket';
-
+const CANVAS_HEIGHT = 500;
+const CANVAS_WIDTH  = 500;
 export default function Canvas(props) {
-  React.useEffect(() => {
-    return () => {}
-  }, []);
-
+  const [releasedPen, setReleasedPen] = React.useState(false);
+  const [xPos, setXPos] = React.useState(0);
+  const [yPos, setYPos] = React.useState(0);
   // set to true when it is the user's turn
   const [canDraw, setCanDraw] = React.useState(true);
   // text for the controlled form component. Contains the player's guess for the word
@@ -31,10 +31,10 @@ export default function Canvas(props) {
       console.log(data)
       p5.stroke(data.color)
       p5.strokeWeight(data.strokeWidth)
-      p5.line(data.x, data.y, data.pX, data.pY)
+      p5.line(data.x1, data.y1, data.x2, data.y2)
     })
 
-    p5.createCanvas(500, 500).parent(canvasParentRef);
+    p5.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT).parent(canvasParentRef);
   };
 
   // function that is run when the user drags their mouse on the canvas
@@ -43,28 +43,41 @@ export default function Canvas(props) {
   const mouseDragged = (p5) => {
     // only allow user to draw if it is their turn
     if (!canDraw) {
-      return
+      return;
     }
+    if (p5.mouseX > CANVAS_WIDTH || p5.mouseY > CANVAS_HEIGHT || p5.mouseX < 0 || p5.mouseY < 0 ) {
+      return;
+    }
+    setXPos(p5.mouseX);
+    setYPos(p5.mouseY);
 
     // make these two dynamic based on state controlled inputs
-    const color = 'rgba(100%,0%,100%,0.5)'
-    const strokeWidth = 4
+    const color = 'rgba(100%,0%,100%,0.5)';
+    const strokeWidth = 4;
+    const penLifted = 0;
+    console.log(p5)
     p5.stroke(color)
     p5.strokeWeight(strokeWidth)
-    p5.line(p5.mouseX, p5.mouseY, p5.pmouseX, p5.pmouseY);
-    sendmouse(p5.mouseX, p5.mouseY, p5.pmouseX, p5.pmouseY, color, strokeWidth)
+    p5.line(p5.pmouseX, p5.pmouseY, p5.mouseX, p5.mouseY);
+    sendmouse(p5.pmouseX, p5.pmouseY, p5.mouseX, p5.mouseY, penLifted, color, strokeWidth)
+  }
+
+  const mouseReleased = (p5) => {
+    const penLifted = 1;
+    sendmouse(xPos, yPos, xPos, yPos, penLifted, 'rgba(100%,0%,100%,0.5)', 4);
   }
 
   // utility function for sending mouse stroke info to the server
-  function sendmouse(x, y, pX, pY, color, strokeWidth) {
+  function sendmouse(x1, y1, x2, y2, penLifted, color, strokeWidth) {
     const data = {
-      x,
-      y,
-      pX,
-      pY,
+      x1,
+      y1,
+      x2,
+      y2,
       color,
+      penLifted,
       strokeWidth,
-      roomId: 1
+      roomId: '1'
     }
     socket.emit('send_draw', data)
   }
@@ -101,7 +114,9 @@ export default function Canvas(props) {
       <button id="stroke-btn">Change stroke width</button>
 
       {/* This is the p5 react component */}
-      <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged}/>
+      <div style={{borderStyle: 'dotted', borderColor: 'white'}}>
+        <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged} mouseReleased={mouseReleased}/>
+      </div>
       <div id='chat' className='container'>
         <span>this is the chat</span>
         <ul>

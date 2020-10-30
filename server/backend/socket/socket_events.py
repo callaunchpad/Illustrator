@@ -30,7 +30,6 @@ ROOMS = defaultdict(list)
 # ROOMS_GAMES = {}
 ROOMS_GAMES = {'1': Game('1', socketio, 4)}
 
-
 """
 hanlder for when a user connects to the server
 """
@@ -48,6 +47,9 @@ also should append data that'll get processed into an image to feed into the cla
 def on_send_draw(data):
   # print("SENDING DRAWING")
   room = data['roomId']
+  print(data)
+  with open("circle.txt", "a") as myfile:
+    myfile.write(str(data) + "\n")
   # TODO: alter game state for when drawing occurs
   emit('receive_draw', data, room=room)
 
@@ -95,8 +97,6 @@ def on_create_game(data):
   socketio.emit('join_room_msg', data, room=room)
   # emit("new_game", data, room=room)
   
-
-
 """
 hanlder for when a user starts a game
 """
