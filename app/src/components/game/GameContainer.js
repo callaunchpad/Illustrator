@@ -130,6 +130,15 @@ function GameContainer(props) {
     };
   }, []);
 
+  const onChooseWord = (word) => {
+    console.log("choosing: ", word);
+    socket.emit("receive_word", {
+      username,
+      roomId,
+      word,
+    });
+  }
+
   const displayScreen = () => {
     if (gameStart) {
       return (
@@ -155,7 +164,12 @@ function GameContainer(props) {
       case GAME_START:
         return <StartGame />;
       case CHOOSE_WORD:
-        return <ChooseWord choices={wordChoices}/>;
+        return (
+          <ChooseWord
+            choices={wordChoices}
+            onChooseWord={onChooseWord}
+          />
+        );
       default:
         return (<span>Something's wrong with the screen display logic :(</span>);
     }

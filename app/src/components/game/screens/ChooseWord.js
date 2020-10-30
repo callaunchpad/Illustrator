@@ -6,7 +6,14 @@ export default function ChooseWord(props) {
       <ul>
         {props.choices.map((word, idx) => {
           return (
-            <li key={idx} style={{color: 'white'}}>
+            <li
+              key={idx}
+              style={{color: 'white', cursor: 'pointer'}}
+              onClick={(e) => {
+                e.preventDefault();
+                props.onChooseWord(word);
+              }}
+            >
               {word}
             </li>
           );
