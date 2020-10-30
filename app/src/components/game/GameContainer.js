@@ -137,6 +137,7 @@ function GameContainer(props) {
       roomId,
       word,
     });
+    setModalToDisplay(NO_MODAL);
   }
 
   const displayScreen = () => {
