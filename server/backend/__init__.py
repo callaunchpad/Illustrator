@@ -9,7 +9,7 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
 # gives cross origin access to all sockets
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_handlers=True)
 
 from .socket import socket_blueprint
 from .routes import routes_blueprint

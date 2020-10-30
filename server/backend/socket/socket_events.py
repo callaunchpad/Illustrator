@@ -46,7 +46,7 @@ also should append data that'll get processed into an image to feed into the cla
 """
 @socketio.on('send_draw')
 def on_send_draw(data):
-  print("SENDING DRAWING")
+  # print("SENDING DRAWING")
   room = data['roomId']
   # TODO: alter game state for when drawing occurs
   emit('receive_draw', data, room=room)
@@ -119,7 +119,7 @@ def on_start_game(data):
   # emit("new_game", data, room=room)
 
 """
-hanlder for when a user starts a game
+handler for when a user starts a game
 """
 @socketio.on('start')
 def on_start_game(data):
@@ -172,11 +172,11 @@ def on_leave(data):
 @socketio.on("receive_word")
 def on_receive_word(data):
   # username = data['username']
-  print("RECEIVED_WORD SOCKET")
 
   # we will need these:
   room = data['roomId']
   word = data['word']
+  print("RECEIVED_WORD SOCKET: ", word)
 
   game = ROOMS_GAMES[room]
   game.game_round.choice = word

@@ -91,7 +91,11 @@ class Round:
     # flushes the emit message
     eventlet.sleep(0)
     print("CHOOSING WORD")
-    Timer.wait_time(3)
+    # yield to another handler if word choice wasn't received yet
+    while len(self.choice) == 0:
+      eventlet.sleep(0)
+    print("received word is: ", self.choice)
+    # Timer.wait_time(3)
     return self.choice
 
 """
