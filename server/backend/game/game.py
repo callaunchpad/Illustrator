@@ -38,6 +38,7 @@ class Game:
   
   def addPlayer(self, id):
     self.players.append(id)
+    self.leaderboard[id] = 0
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
@@ -89,11 +90,12 @@ class Round:
     self.choice = ""
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
-    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
+    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=player)
     print("CHOOSING WORD")
-    await self.game.socketio_instance.sleep(3)
+    await self.game.socketio_instance.sleep(5)
     if (len(self.choice) == 0):
       self.choice = np.random.choice(options)
+      await self.game.socketio_instance.emit("close_word", room=player)
     print("word is: ", self.choice)
     return self.choice
 
@@ -119,14 +121,16 @@ class Drawing:
       # self.showLeaderboard()
       await self.game_round.game.socketio_instance.sleep(0)
       # TODO start_draw stuff with socket responses
+    
+    await self.game_round.game.socketio_instance.emit("show_leaderboard", {"leaderboard": self.game_round.game.leaderboard}, room=self.game_round.game.id)
 
   def checkGuess(self, player, guess):
     print("THE GUESS IS " + guess + "AND THE CORRECT ONE IS " + self.choice)
-    if guess == self.choice:
+    if guess == self.choice and (player not in self.correct_players):
       self.correct_players.append(player)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
-      # self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
+      self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
       return True
     else:
       self.guesses.append(guess)

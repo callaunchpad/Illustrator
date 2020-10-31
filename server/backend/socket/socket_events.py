@@ -67,7 +67,7 @@ async def on_send_guess(sid, data):
   guess = data['guess']
   game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
-  correct = game.game_round.drawing.checkGuess(username, guess)
+  correct = game.game_round.drawing.checkGuess(sid, guess)
   if correct:
     print("CORRECT GUESS!")
     await sio.emit('receive_answer', data, room=room)
