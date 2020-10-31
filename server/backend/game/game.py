@@ -61,7 +61,7 @@ class Round:
     self.players_drawn = []
     self.players_copy = game.players.copy()
     self.game = game
-    self.drawing = ""
+    self.drawing = None
     self.choice = ""
   
   async def runRound(self):
@@ -99,13 +99,14 @@ class Round:
 Class for defining a drawing
 """
 class Drawing:
-  def __init__(self, artist, round, choice, seconds=1):
+  def __init__(self, artist, game_round, choice, seconds=1):
     self.guesses = []  # incorrect guesses
     self.correct_players = []
     self.artist = artist
     self.choice = choice
     self.timer = Timer(seconds + 3)  # to account for later wait_time stall
-    self.round = round
+    self.time_limit = 20
+    self.game_round = game_round
   
   def draw(self):
     # Wait for 3 seconds before beginning the drawing
@@ -114,13 +115,19 @@ class Drawing:
     # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess
     
-    while self.timer.check() and len(self.correct_players) < len(self.round.game.players):
+    while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players):
       # self.showLeaderboard()
 
       None
       # TODO start_draw stuff with socket responses
 
-  def correctGuess(player):
-    # add correct points to correct player
-    # add player to self.correct_players
-    return
+  def checkGuess(self, player, guess):
+    if guess == self.choice:
+      self.correct_players.append(player)
+      # TODO: have some score multiplier with the time?
+      # add points to a player, maybe move to another method later
+      self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
+      return True
+    else:
+      self.guesses.append(guess)
+      return False

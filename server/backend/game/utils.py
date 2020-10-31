@@ -14,6 +14,10 @@ class Timer:
       return True
     return False
 
+  def current_time(self):
+    curr_time = time.perf_counter()
+    return curr_time - self.start_time
+
   @staticmethod
   def wait_time(seconds):
     start_time = time.perf_counter()

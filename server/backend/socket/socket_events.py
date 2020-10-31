@@ -60,20 +60,20 @@ async def on_send_draw(sid, data):
 handler for when a player submits a guess
 """
 @sio.on('send_guess')
-def on_send_guess(sid, data):
+async def on_send_guess(sid, data):
   print("SENDING GUESS")
+  username = data['username']
   room = data['roomId']
   guess = data['guess']
-
   game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
-  answer = "David"
-  if guess == answer:
-    game.game_round.drawing.correct_players.append(sid)  # will eventually switch to correctGuess method
-    sio.emit('receive_answer', data, room=room)
-
+  correct = game.game_round.drawing.checkGuess(guess, username)
+  if correct:
+    print("CORRECT GUESS!")
+    await sio.emit('receive_answer', data, room=room)
   else:
-    sio.emit('receive_guess', data, room=room)
+    print("INCORRECT GUESS!")
+    await sio.emit('receive_guess', data, room=room)
 
 """
 handler for when a user creates a game
