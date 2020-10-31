@@ -21,28 +21,28 @@ class Game:
     self.game_round = None
     self.socketio_instance = socketio_instance
 
-  def playGame(self):
+  async def playGame(self):
     print("STARTING GAME...")
     while self.curr_round != self.num_rounds:
       print('curr_round is: ', self.curr_round)
-      self.playRound()
-    self.endGame()
+      await self.playRound()
+    await self.endGame()
 
-  def endGame(self):
+  async def endGame(self):
     print("ENDING GAME...")
     self.showLeaderboard()
     self.state.status = 'ended'
-    self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
+    await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
     self.curr_round = 1
     self.players = []
   
   def addPlayer(self, id):
     self.players.append(id)
 
-  def playRound(self):
+  async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
     self.game_round = Round(self)
-    self.game_round.runRound()
+    await self.game_round.runRound()
     self.curr_round += 1
   
   def showLeaderboard(self):
@@ -64,13 +64,13 @@ class Round:
     self.drawing = ""
     self.choice = ""
   
-  def runRound(self):
+  async def runRound(self):
     while len(self.players_drawn) < len(self.game.players):
       player = self.choosePlayer()
-      self.next_drawing(player)
+      await self.next_drawing(player)
   
-  def next_drawing(self, player):
-    choice = self.chooseDrawing(player)
+  async def next_drawing(self, player):
+    choice = await self.chooseDrawing(player)
     self.drawing = Drawing(player,self,choice)
     self.drawing.draw()
     self.players_drawn.append(player)
@@ -80,22 +80,19 @@ class Round:
     self.players_copy.remove(player)  # delete from possible players to draw
     return player    # return player object
 
-  def chooseDrawing(self, player):
+  async def chooseDrawing(self, player):
     options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck
 
     self.choice = ""
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
-    self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
-    # flushes the emit message
-    eventlet.sleep(0)
+    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=self.game.id)
     print("CHOOSING WORD")
-    # yield to another handler if word choice wasn't received yet
-    while len(self.choice) == 0:
-      eventlet.sleep(0)
-    print("received word is: ", self.choice)
-    # Timer.wait_time(3)
+    await self.game.socketio_instance.sleep(3)
+    if (len(self.choice) == 0):
+      self.choice = np.random.choice(options)
+    print("word is: ", self.choice)
     return self.choice
 
 """

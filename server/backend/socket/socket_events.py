@@ -8,9 +8,7 @@ from tensorflow import keras
 import numpy as np
 from keras import backend as K
 
-from flask import session, request
-from flask_socketio import emit, send, join_room, leave_room
-from .. import socketio
+import socketio
 from collections import defaultdict
 from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
 from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
@@ -20,6 +18,10 @@ import json
 import os
 import time
 dirname = os.path.dirname(__file__)
+
+# initialize a socket instance
+# change the * to the domain name of our client when applicable
+sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*', logger=True)
 # need to do this to allow usage of tf 1
 # tf.compat.v1.disable_eager_execution()
 
@@ -27,37 +29,38 @@ dirname = os.path.dirname(__file__)
 # maps room to list of players
 ROOMS = defaultdict(list)
 
-# ROOMS_GAMES = {}
-ROOMS_GAMES = {'1': Game('1', socketio, 4)}
+ROOMS_GAMES = {'1': Game('1', sio, 4)}
 
 """
 hanlder for when a user connects to the server
 """
-@socketio.on('connect')
-def on_connect():
+# @sio.event
+# def connect(sid, environ):
+#   print('connected: ', sid)
+@sio.on('connect')
+def on_connect(sid, environ):
   """Create a game lobby"""
-  print('connected:', request.sid)
+  print('connected:', sid)
 
 """
 socket's response to receiving the drawer's canvas mouse movements
 will broadcast the data back to all other users in the same room
 also should append data that'll get processed into an image to feed into the classifier
 """
-@socketio.on('send_draw')
-def on_send_draw(data):
-  # print("SENDING DRAWING")
+@sio.on('send_draw')
+async def on_send_draw(sid, data):
+  print("SENDING DRAWING")
   room = data['roomId']
-  print(data)
-  with open("circle.txt", "a") as myfile:
-    myfile.write(str(data) + "\n")
+  # with open("circle.txt", "a") as myfile:
+  #   myfile.write(str(data) + "\n")
   # TODO: alter game state for when drawing occurs
-  emit('receive_draw', data, room=room)
+  await sio.emit('receive_draw', data, room=room)
 
 """
 handler for when a player submits a guess
 """
-@socketio.on('send_guess')
-def on_send_guess(data):
+@sio.on('send_guess')
+def on_send_guess(sid, data):
   print("SENDING GUESS")
   room = data['roomId']
   guess = data['guess']
@@ -66,47 +69,47 @@ def on_send_guess(data):
   # TODO: alter game state for when guess occurs
   answer = "David"
   if guess == answer:
-    game.game_round.drawing.correct_players.append(request.sid)  # will eventually switch to correctGuess method
-    socketio.emit('receive_answer', data, room=room)
+    game.game_round.drawing.correct_players.append(sid)  # will eventually switch to correctGuess method
+    sio.emit('receive_answer', data, room=room)
 
   else:
-    socketio.emit('receive_guess', data, room=room)
+    sio.emit('receive_guess', data, room=room)
 
 """
 handler for when a user creates a game
   data: username
 """
-@socketio.on('create_game')
-def on_create_game(data):
+@sio.on('create_game')
+async def on_create_game(sid, data):
   """Create a game lobby"""
   print("CREATING GAME SOCKET")
   print('data: ' + str(data))
   room = data['roomId'] # TODO generate random room ID
   # Use default join_room function: puts the user in a room
-  join_room(room)
+  sio.enter_room(sid, room)
 
   # may not be necessary
   # ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, socketio, data["num_rounds"], players=[request.sid]) # need num_rounds from client
+  ROOMS_GAMES[room] = Game(room, sio, data["num_rounds"], players=[sid]) # need num_rounds from client
   # print("ROOMS:")
   # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES[1].players)
-  socketio.emit('join_room_msg', data, room=room)
+  await sio.emit('join_room_msg', data, room=room)
   # emit("new_game", data, room=room)
   
 """
 hanlder for when a user starts a game
 """
-@socketio.on('start_game')
-def on_start_game(data):
+@sio.on('start_game')
+async def on_start_game(sid, data):
   """Start a created game"""
   print("START GAME SOCKET")
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
-  socketio.emit('new_game', data, room=room)
+  await sio.emit('new_game', data, room=room)
   # ROOMS_GAMES[room].playGame()
   # print("ROOMS_GAMES:")
   # print(ROOMS_GAMES.items())
@@ -121,56 +124,56 @@ def on_start_game(data):
 """
 handler for when a user starts a game
 """
-@socketio.on('start')
-def on_start_game(data):
+@sio.on('start')
+async def on_start_game(sid, data):
   """Start a created game"""
   print("START SOCKET")
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
-  ROOMS_GAMES[room].playGame()
+  await ROOMS_GAMES[room].playGame()
 
 """
 handler for when a new user attempts to join a room
   data: username, room
 """
-@socketio.on('join')
-def on_join(data):
+@sio.on('join')
+async def on_join(sid, data):
   print("JOINING GAME SOCKET")
   print("data: " + str(data))
   room = data['roomId']
   username = data['username']
-  join_room(room)
+  sio.enter_room(sid, room)
 
   # may not be necessary
   # ROOMS[room].append(request.sid)
   
-  ROOMS_GAMES[room].addPlayer(request.sid)
+  ROOMS_GAMES[room].addPlayer(sid)
   # print("ROOMS:")
   # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES['1'].players)
-  socketio.emit('new_player_join', data, room=room)
+  await sio.emit('new_player_join', data, room=room)
   # emit('new_player_join', {'roomId': room}, room=room)
 
 """
 handler for when a user leaves the room they're in
 """
-@socketio.on('leave')
-def on_leave(data):
+@sio.on('leave')
+async def on_leave(sid, data):
   print('leaving... SOCKET')
   username = data['username']
   room = data['roomId']
   # ROOMS.pop(room)
 
-  ROOMS_GAMES[room].players.pop(request.sid)
-  leave_room(room)
-  socketio.emit('player_leave', data, room=room)
+  ROOMS_GAMES[room].players.pop(sid)
+  sio.leave_room(sid, room)
+  await sio.emit('player_leave', data, room=room)
   # send(username + ' has left the room.', room=room)
 
-@socketio.on("receive_word")
-def on_receive_word(data):
+@sio.on("receive_word")
+def on_receive_word(sid, data):
   # username = data['username']
 
   # we will need these:
@@ -197,8 +200,8 @@ def decode(seq2seq, model_params, z_input=None, draw_mode=False, temperature=0.1
 """
 template for sampling from a really poorly trained sketchrnn for airplanes
 """
-@socketio.on('test_sketch_rnn')
-def on_test_sketch_rnn(data):
+@sio.on('test_sketch_rnn')
+def on_test_sketch_rnn(sid, data):
   room = data['roomId']
   # load the model hparams from the model_config json
   with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
@@ -221,7 +224,7 @@ def on_test_sketch_rnn(data):
   for stroke in strokes:
     x += stroke[0]/.1
     y += stroke[1]/.1
-    emit('receive_draw', {
+    sio.emit('receive_draw', {
       'x': x,
       'y': y,
       'pX': x,

@@ -1,5 +1,6 @@
 
-from backend import app, socketio
+from aiohttp import web
+from backend import app
 
 if __name__ == '__main__':
-  socketio.run(app, debug=False, port=5000)
+  web.run_app(app, port=5000)
