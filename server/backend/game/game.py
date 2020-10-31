@@ -23,6 +23,7 @@ class Game:
 
   async def playGame(self):
     print("STARTING GAME...")
+    self.state.status="started"
     while self.curr_round != self.num_rounds:
       print('curr_round is: ', self.curr_round)
       await self.playRound()
@@ -34,7 +35,8 @@ class Game:
     self.state.status = 'ended'
     await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
     self.curr_round = 1
-    self.players = []
+    for elem in self.leaderboard.keys():
+      self.leaderboard[elem] = 0
   
   def addPlayer(self, id):
     self.players.append(id)
@@ -48,6 +50,9 @@ class Game:
   
   def showLeaderboard(self):
     # TODO display leaderboard via socket
+
+    # EVENTUALLY ADD 
+    # await self.socketio_instance.emit("show_leaderboard", {"leaderboard": self.leaderboard}, room=self.id)
     None
 
 """
