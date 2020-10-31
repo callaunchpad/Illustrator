@@ -79,7 +79,7 @@ class Round:
     player = self.players_copy[0]   # choose player who hasn't drawn
     self.players_copy.remove(player)  # delete from possible players to draw
     return player    # return player object
-
+    
   async def chooseDrawing(self, player):
     options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck

@@ -87,7 +87,6 @@ async def on_create_game(sid, data):
   room = data['roomId'] # TODO generate random room ID
   # Use default join_room function: puts the user in a room
   sio.enter_room(sid, room)
-
   # may not be necessary
   # ROOMS[room].append(request.sid)
   ROOMS_GAMES[room] = Game(room, sio, data["num_rounds"], players=[sid]) # need num_rounds from client
