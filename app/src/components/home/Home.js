@@ -1,9 +1,9 @@
 import axios from 'axios';
 import React from 'react';
 import { withRouter } from 'react-router-dom';
-
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import endpoints from '../../endpoints';
-
+import './Home.css';
 function Home(props) {
   const {
     username,
@@ -39,29 +39,62 @@ function Home(props) {
   }
 
   return (
-    <div className='home container'>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>What's your username?</label>
-          <input
+    <Container>
+      <Form>
+        <Form.Group controlId="formName">
+          {/* <Form.Label style={{color: 'white'}}>Name</Form.Label> */}
+          <Form.Control
             type="text"
-            name="username"
+            placeholder="Enter name..."
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-        </div>
-        <div>
-          <label>Enter room id:</label>
-          <input
+        </Form.Group>
+
+        <Form.Group controlId="formRoomId">
+          {/* <Form.Label style={{color: 'white'}}>Room Id</Form.Label> */}
+          <Form.Control
             type="text"
-            name="roomId"
+            placeholder="Room id..."
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
           />
-        </div>
-        <button type="submit">Join Room!</button>
-      </form>
-    </div>
+        </Form.Group>
+        <Button variant="primary" onClick={handleSubmit}>
+          Submit
+        </Button>
+      </Form>
+      {/* <form className='form' onSubmit={handleSubmit}>
+        <Container>
+          <Row>
+            <Col xs={2}>
+              <label>Name:</label>
+            </Col>
+            <Col>
+              <input
+                type="text"
+                name="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </Col>
+          </Row>
+          <Row>
+            <label>Join a room:</label>
+            <input
+              placeholder='room id...'
+              type="text"
+              name="roomId"
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value)}
+            />
+          </Row>
+          <Row>
+            <button type="submit">Join Room!</button>
+          </Row>
+        </Container>
+      </form> */}
+    </Container>
   )
 }
 export default withRouter(Home);

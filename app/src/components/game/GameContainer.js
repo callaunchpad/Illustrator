@@ -6,9 +6,10 @@
  */
 
 import React from 'react'
-import Modal from '@material-ui/core/Modal';
+// import Modal from '@material-ui/core/Modal';
 import { withRouter } from 'react-router-dom';
 import socketIOClient from "socket.io-client";
+import { Container, Row, Col, Form, Button, Modal } from 'react-bootstrap';
 
 import ENDPOINTS from '../../endpoints';
 import End from './screens/End';
@@ -25,7 +26,7 @@ const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
 const NO_MODAL  = 'none';
 const GAME_START  = 'game_start';
-const CHOOSE_WORD = "choose_word"
+const CHOOSE_WORD = "Pick a word!"
 
 function GameContainer(props) {
   const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
@@ -119,6 +120,10 @@ function GameContainer(props) {
       setModalToDisplay(CHOOSE_WORD);
     });
 
+    socket.on('close_word', function(data) {
+      setModalToDisplay(NO_MODAL);
+    })
+
     // disconnect the socket when component unmounts
     return () => {
       console.log("disconnecting...");
@@ -155,6 +160,7 @@ function GameContainer(props) {
   }
 
   const displayModalContent = () => {
+    console.log(modalToDisplay);
     switch(modalToDisplay) {
       case NO_MODAL:
         return null;
@@ -176,18 +182,24 @@ function GameContainer(props) {
     }
   }
   return (
-    <div className='game container'>
-      { displayScreen() }
+    <>
       <Modal
-        open={modalToDisplay !== NO_MODAL}
-        onClose={() => setModalToDisplay(NO_MODAL)}
+        show={modalToDisplay !== NO_MODAL}
+        onHide={() => setModalToDisplay(NO_MODAL)}
+        backdrop='static'
+        size="lg"
       >
-        <div>
-          <h1 style={{color: 'white'}}>{modalToDisplay}</h1>
+        <Modal.Header>
+          <Modal.Title style={{color: 'black'}}>
+            {modalToDisplay}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           {displayModalContent()}
-        </div>
+        </Modal.Body>
       </Modal>
-    </div>
+      { displayScreen() }
+    </>
   )
 }
 export default withRouter(GameContainer);

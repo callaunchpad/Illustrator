@@ -1,0 +1,23 @@
+/* .home {
+  height: 80%;
+  width: 60%;
+  background-color: #fff;
+} */
+.form {
+  padding: 50px;
+  padding-top: 20px;
+  border-radius: 5px;
+  height: 300px;
+  background-color: #fff;
+
+}
+
+label {
+  color: #2c2952
+}
+
+input {
+  height: 25px;
+  width: 200px;
+  border-radius: 25px;
+}

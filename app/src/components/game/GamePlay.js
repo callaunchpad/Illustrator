@@ -1,7 +1,9 @@
 import React from 'react';
 import GlobalContext from '../../context';
 import Canvas from './canvas/Canvas';
-// import socket from '../../socket';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+
+import Chat from './Chat';
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
@@ -15,9 +17,10 @@ export default function GamePlay(props) {
       props.socket.emit('send_guess', {
         username,
         roomId,
-        guess: g
+        guess: g,
       });
     }
+    setGuess('');
   }
   const startGame = (e) => {
     e.preventDefault();
@@ -27,24 +30,28 @@ export default function GamePlay(props) {
     });
   }
   return (
-    <div className='gameplay container'>
-      <form onSubmit={sendGuess}>
-        <input
-          type="text"
-          id="guess_input"
-          placeholder="Enter your guess here"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-        />
-        <button type="submit">Send</button>
-      </form>
-      <form onSubmit={startGame}>
-        <button type="submit">Start Game</button>
-      </form>
-      <Canvas
-        socket={props.socket}
-        messages={props.messages}
-      />
-    </div>
+    <Container>
+      <Row>
+        <Form onSubmit={startGame}>
+          <Button type="submit">Start Game</Button>
+        </Form>
+      </Row>
+      <Row>
+        <Col xs={7}>
+          <Canvas
+            socket={props.socket}
+          />
+        </Col>
+        <Col xs={5} style={{backgroundColor: 'white'}}>
+          {/* chat goes here! */}
+          <Chat
+            messages={props.messages}
+            sendGuess={sendGuess}
+            setGuess={setGuess}
+            guess={guess}
+          />
+        </Col>
+      </Row>
+    </Container>
   )
 }

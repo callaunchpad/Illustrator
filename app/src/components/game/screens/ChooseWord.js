@@ -8,7 +8,7 @@ export default function ChooseWord(props) {
           return (
             <li
               key={idx}
-              style={{color: 'white', cursor: 'pointer'}}
+              style={{color: 'black', cursor: 'pointer'}}
               onClick={(e) => {
                 e.preventDefault();
                 props.onChooseWord(word);

@@ -5,6 +5,7 @@
 
 import React from 'react'
 import Sketch from "react-p5";
+import { Container, Row, Col, ListGroup } from 'react-bootstrap';
 
 import './Canvas.css';
 // the global socket instance for this app
@@ -103,28 +104,30 @@ export default function Canvas(props) {
 
   // return a really crappy Canvas component that'll be beautiful later
   return (
-    <div>
-      <p>Choose color (# hex)</p>
+    
+    <Container>
+      {/* <p>Choose color (# hex)</p>
       <input type="text" name="custom_color" placeholder="#FFFFFF" id="pickcolor" className="call-picker" />
       <div id="color-holder" className="color-holder call-picker"></div>
       <button id="color-btn">Change color</button>
       <br />
       <p>Choose stroke width</p>
       <input type="text" name="stroke_width" placeholder="4" id="stroke-width-picker" className="stroke_width_picker" />
-      <button id="stroke-btn">Change stroke width</button>
+      <button id="stroke-btn">Change stroke width</button> */}
 
       {/* This is the p5 react component */}
-      <div style={{borderStyle: 'dotted', borderColor: 'white'}}>
-        <Sketch setup={setup} draw={draw} mouseDragged={mouseDragged} mouseReleased={mouseReleased}/>
-      </div>
-      <div id='chat' className='container'>
-        <span>this is the chat</span>
-        <ul>
-          { props.messages.map((msg, idx) => {
-            return (<li key={idx}>{msg}</li>)
-          }) }
-        </ul>
-      </div>
+      <Row>
+        <Sketch
+          style={{
+            backgroundColor: 'white',
+          }}
+          setup={setup}
+          draw={draw}
+          mouseDragged={mouseDragged}
+          mouseReleased={mouseReleased}
+        />
+      </Row>
+
       
       {/* <form onSubmit={guessWord}>
         <label>
@@ -135,6 +138,6 @@ export default function Canvas(props) {
       </form> */}
       <button onClick={() => socket.emit('test_sketch_rnn', {roomId: 1})}>Test Sketch Rnn</button>
       {/* <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button> */}
-    </div>
+    </Container>
   )
 }
