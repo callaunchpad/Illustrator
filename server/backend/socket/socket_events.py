@@ -67,7 +67,7 @@ async def on_send_guess(sid, data):
   guess = data['guess']
   game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
-  correct = game.game_round.drawing.checkGuess(guess, username)
+  correct = game.game_round.drawing.checkGuess(username, guess)
   if correct:
     print("CORRECT GUESS!")
     await sio.emit('receive_answer', data, room=room)
@@ -124,7 +124,7 @@ async def on_start_game(sid, data):
 handler for when a user starts a game
 """
 @sio.on('start')
-async def on_start_game(sid, data):
+async def on_start(sid, data):
   """Start a created game"""
   print("START SOCKET")
   print("data: " + str(data))

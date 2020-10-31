@@ -14,7 +14,7 @@ class Game:
     self.players = players
     self.state = GameState()
     self.deck = deck
-    self.leaderboard = []     # list of ordered tuples
+    self.leaderboard = {}     # list of ordered tuples
     self.num_rounds = num_rounds   # initialized by game creator
     self.curr_round = 1
     self.id = id
@@ -61,7 +61,7 @@ class Round:
     self.players_drawn = []
     self.players_copy = game.players.copy()
     self.game = game
-    self.drawing = None
+    self.drawing = Drawing("",0,"")
     self.choice = ""
   
   async def runRound(self):
@@ -71,8 +71,10 @@ class Round:
   
   async def next_drawing(self, player):
     choice = await self.chooseDrawing(player)
-    self.drawing = Drawing(player,self,choice)
-    self.drawing.draw()
+    print("THE CHOICE IS...." + choice)
+    self.drawing = Drawing(player, self, choice, 30)
+    print("WAITING FOR DRAWING, you have 30 seconds")
+    await self.drawing.draw()
     self.players_drawn.append(player)
 
   def choosePlayer(self):
@@ -108,25 +110,23 @@ class Drawing:
     self.time_limit = 20
     self.game_round = game_round
   
-  def draw(self):
+  async def draw(self):
     # Wait for 3 seconds before beginning the drawing
-    Timer.wait_time(1)
-
     # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess
     
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players):
       # self.showLeaderboard()
-
-      None
+      await self.game_round.game.socketio_instance.sleep(0)
       # TODO start_draw stuff with socket responses
 
   def checkGuess(self, player, guess):
+    print("THE GUESS IS " + guess + "AND THE CORRECT ONE IS " + self.choice)
     if guess == self.choice:
       self.correct_players.append(player)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
-      self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
+      # self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
       return True
     else:
       self.guesses.append(guess)
