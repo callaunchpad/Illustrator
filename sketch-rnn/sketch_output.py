@@ -54,9 +54,9 @@ def get_sketch_dictionary(class_name,use_dataset=False,draw_mode=True):
     
     ARGS:
     * class_name: the name of the class to sketch
-    * use_dataset: should I use the dataset to draw the image? (default: False)
+    * use_dataset: should I use the dataset to draw the image? This ignores the model (default: False)
       CSUA Latte's dataset directory: /dataset/sketch-rnn, see below
-    * draw_mode: should I draw a copy of the sketch to the output/ folder? (defaullt: True)
+    * draw_mode: should I draw a copy of the sketch to the 'output/' folder? (default: True)
     """
 
     # Data directory on CSUA latte for grabbing datasets
@@ -68,7 +68,7 @@ def get_sketch_dictionary(class_name,use_dataset=False,draw_mode=True):
     exp_dir = 'experiments/{}'.format(class_name)
 
     if not os.path.exists(exp_dir):
-      raise ValueError("class name does not exist")
+      raise ValueError("class name does not exist.")
 
     with open(os.path.join(exp_dir,'logs', 'model_config.json'), 'r') as f:
         model_params = json.load(f)
