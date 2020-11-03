@@ -67,7 +67,7 @@ async def on_send_guess(sid, data):
   guess = data['guess']
   game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
-  correct = game.game_round.drawing.checkGuess(sid, guess)
+  correct = game.game_round.drawing.checkGuess(sid, username, guess)
   if correct:
     print("CORRECT GUESS!")
     await sio.emit('receive_answer', data, room=room)
@@ -146,7 +146,7 @@ async def on_join(sid, data):
   # may not be necessary
   # ROOMS[room].append(request.sid)
   
-  ROOMS_GAMES[room].addPlayer(sid)
+  ROOMS_GAMES[room].addPlayer(sid, username)
   # print("ROOMS:")
   # print(ROOMS.items())
   print("ROOMS_GAMES:")

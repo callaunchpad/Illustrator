@@ -10,8 +10,9 @@ import numpy as np
 from .. import socketio
 
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","banana","corn","dog"]):
+  def __init__(self, id, socketio_instance, num_rounds=3, players=[], usernames=[], deck=["apple","banana","corn","dog"]):
     self.players = players
+    self.usernames = usernames
     self.state = GameState()
     self.deck = deck
     self.leaderboard = {}     # list of ordered tuples
@@ -38,9 +39,10 @@ class Game:
     for elem in self.leaderboard.keys():
       self.leaderboard[elem] = 0
   
-  def addPlayer(self, id):
+  def addPlayer(self, id, username):
     self.players.append(id)
-    self.leaderboard[id] = 0
+    self.leaderboard[username] = 0
+    # self.leaderboard[id] = 0
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
@@ -76,9 +78,10 @@ class Round:
       await self.next_drawing(player)
   
   async def next_drawing(self, player):
-    choice = await self.chooseDrawing(player)
-    print("THE CHOICE IS...." + choice)
-    self.drawing = Drawing(player, self, choice, 30)
+    # choice = await self.chooseDrawing(player)
+    await self.chooseDrawing(player)
+    print("THE CHOICE IS...." + self.choice)
+    self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
     await self.drawing.draw()
     self.players_drawn.append(player)
@@ -89,20 +92,25 @@ class Round:
     return player    # return player object
     
   async def chooseDrawing(self, player):
+    # callback that runs once the client chooses a word
     options = np.random.choice(self.game.deck, 3, replace=False)
     # TODO remove those choices from self.deck
 
     self.choice = ""
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
-    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=player)
     print("CHOOSING WORD")
-    await self.game.socketio_instance.sleep(5)
+    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player}, room=player)
+    seconds_slept = 0
+    # poll every second
+    while (len(self.choice) == 0 and seconds_slept < 10):
+      await self.game.socketio_instance.sleep(1)
+      seconds_slept += 1
     if (len(self.choice) == 0):
       self.choice = np.random.choice(options)
       await self.game.socketio_instance.emit("close_word", room=player)
     print("word is: ", self.choice)
-    return self.choice
+    # return self.choice
 
 """
 Class for defining a drawing
@@ -129,13 +137,13 @@ class Drawing:
     
     await self.game_round.game.socketio_instance.emit("show_leaderboard", {"leaderboard": self.game_round.game.leaderboard}, room=self.game_round.game.id)
 
-  def checkGuess(self, player, guess):
+  def checkGuess(self, playerId, username, guess):
     print("THE GUESS IS " + guess + "AND THE CORRECT ONE IS " + self.choice)
-    if guess == self.choice and (player not in self.correct_players):
-      self.correct_players.append(player)
+    if guess == self.choice and (playerId not in self.correct_players):
+      self.correct_players.append(playerId)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
-      self.game_round.game.leaderboard[player] += self.time_limit - self.timer.current_time()
+      self.game_round.game.leaderboard[username] += self.time_limit - self.timer.current_time()
       return True
     else:
       self.guesses.append(guess)

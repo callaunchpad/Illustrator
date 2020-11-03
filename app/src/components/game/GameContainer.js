@@ -24,9 +24,11 @@ import ChooseWord from './screens/ChooseWord';
 
 const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
-const NO_MODAL  = 'none';
+const NO_MODAL  = 'No modal';
 const GAME_START  = 'game_start';
 const CHOOSE_WORD = "Pick a word!"
+
+// let wordResolve;
 
 function GameContainer(props) {
   const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
@@ -38,18 +40,21 @@ function GameContainer(props) {
   const [guesses, setGuesses]   = React.useState([]); // list of player names and their guesses
   const [answered, setAnswered] = React.useState([]); // list of players that guessed the word
   const [wordChoices, setWordChoices] = React.useState([]); // list of word choices to be displayed
+  const [leaderboard, setLeaderboard] = React.useState({});
+  const [chosenWord, setChosenWord] = React.useState('');
 
-  const messagesRef    = React.useRef(messages);
-  const playersRef     = React.useRef(players);
-  const guessesRef     = React.useRef(guesses);
-  const answeredRef    = React.useRef(answered);
-
+  const messagesRef = React.useRef(messages);
+  const playersRef  = React.useRef(players);
+  const guessesRef  = React.useRef(guesses);
+  const answeredRef = React.useRef(answered);
+  const leaderboardRef = React.useRef(leaderboard);
   React.useEffect(() => {
-    messagesRef.current    = messages;
-    playersRef.current     = players;
-    guessesRef.current     = guesses;
-    answeredRef.current    = answered;
-  }, [messages, players, guesses, answered]);
+    messagesRef.current = messages;
+    playersRef.current  = players;
+    guessesRef.current  = guesses;
+    answeredRef.current = answered;
+    leaderboardRef.current = leaderboard;
+  }, [messages, players, guesses, answered, leaderboard]);
 
   const globalContext = React.useContext(GlobalContext);
   // console.log(props.location.state.roomId);
@@ -63,7 +68,6 @@ function GameContainer(props) {
   }
 
   React.useEffect(() => {
-    console.log("using effect");
     setGameStart(true);
     socket.on('connect', function() {
       console.log(`Websocket connected! Now joining room: ${roomId}`);
@@ -71,7 +75,6 @@ function GameContainer(props) {
         username,
         roomId,
       });
-      console.log("done")
     });
   
     socket.on('disconnect', function() {
@@ -84,23 +87,22 @@ function GameContainer(props) {
     });
   
     socket.on('receive_answer', (data) => {
-      console.log(data);
       setAnswered([...answeredRef.current, {username: data.username}]);
       setMessages([...messagesRef.current, `${data.username} guessed the word!`]);
     });
   
     socket.on('new_player_join', function (data) {
-      console.log(data);
       setMessages(messagesRef.current.concat(`${data.username} has joined the room :D`));
+      let copy = JSON.parse(JSON.stringify(leaderboardRef.current));
+      copy[data.username] = 0;
+      setLeaderboard(copy);
     });
   
     socket.on('player_leave', function (data) {
-      console.log(data);
       setMessages(messagesRef.current.concat(`${data.username} has left the room :(`));
     });
 
     socket.on('new_game', function (data) {
-      console.log(data);
       setModalToDisplay(GAME_START)
       socket.emit('start', {
         username,
@@ -110,18 +112,26 @@ function GameContainer(props) {
 
     socket.on('end_game', function (data) {
       console.log("end game client");
-      console.log(data);
       setModalToDisplay(GAME_END);
     });
 
-    socket.on('choose_word', function (data) {
+    socket.on('choose_word', async (data) => {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
       setModalToDisplay(CHOOSE_WORD);
+
+      // const word = await chooseWord();
+      // console.log("choose_word: ", word);
+      // return { word, }
     });
 
     socket.on('close_word', function(data) {
       setModalToDisplay(NO_MODAL);
+    });
+
+    socket.on('show_leaderboard', function (data) {
+      console.log('leaderboard: ', data);
+      setLeaderboard(data.leaderboard);
     })
 
     // disconnect the socket when component unmounts
@@ -134,14 +144,26 @@ function GameContainer(props) {
       socket.disconnect();
     };
   }, []);
+  // returns a promise that resolves once the onChooseWord button handler runs
+  // this promise will therefore resolve only when the user has chosen a word/times out
+  // const chooseWord = async (choices) => {
+  //   console.log("running chooseword...");
+  //   setModalToDisplay(CHOOSE_WORD);
+  //   const p = new Promise((resolve, reject) => {
+  //     wordResolve = resolve;
+  //   });
+  //   return p;
+  // }
 
   const onChooseWord = (word) => {
-    console.log("choosing: ", word);
+    console.log("running on choose word: ", word);
     socket.emit("receive_word", {
       username,
       roomId,
       word,
     });
+    setChosenWord(word);
+    // wordResolve(word);
     setModalToDisplay(NO_MODAL);
   }
 
@@ -153,6 +175,7 @@ function GameContainer(props) {
           guesses={guesses}
           messages={messages}
           setMessages={setMessages}
+          leaderboard={leaderboard}
         />
       );
     }

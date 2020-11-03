@@ -4,6 +4,7 @@ import Canvas from './canvas/Canvas';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
 import Chat from './Chat';
+import Leaderboard from './Leaderboard';
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
@@ -37,13 +38,21 @@ export default function GamePlay(props) {
         </Form>
       </Row>
       <Row>
-        <Col xs={7}>
+        <Col xs={2} style={{
+          backgroundColor: 'white',
+          padding: 0,
+          
+        }}>
+          <Leaderboard
+            leaderboard={props.leaderboard}
+          />
+        </Col>
+        <Col xs={6}>
           <Canvas
             socket={props.socket}
           />
         </Col>
-        <Col xs={5} style={{backgroundColor: 'white'}}>
-          {/* chat goes here! */}
+        <Col xs={4} style={{backgroundColor: 'white'}}>
           <Chat
             messages={props.messages}
             sendGuess={sendGuess}

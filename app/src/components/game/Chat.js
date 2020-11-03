@@ -12,6 +12,7 @@ export default function Chat(props) {
           { props.messages.map((msg, idx) => {
             return (
               <ListGroup.Item
+                key={idx}
                 eventKey={idx}
                 style={{fontSize:'12pt', color: 'black'}}
               >
@@ -21,10 +22,6 @@ export default function Chat(props) {
           }) }
         </ListGroup>
       </Row>
-      {/* <Row style={{
-        position: 'absolute',
-        bottom: '0'
-      }}> */}
       <Form onSubmit={props.sendGuess} style={{
         position: 'absolute',
         bottom: '0'
@@ -43,7 +40,6 @@ export default function Chat(props) {
             <Button type="submit">Send</Button>
           </Col>
         </Row>
-      {/* </Row> */}
       </Form>
     </Container>
   )
