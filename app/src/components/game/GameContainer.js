@@ -82,7 +82,6 @@ function GameContainer(props) {
     });
   
     socket.on('receive_guess', function (data) {
-      console.log(data);
       setMessages(messagesRef.current.concat(`${data.username}: ${data.guess}`));
     });
   
@@ -103,7 +102,7 @@ function GameContainer(props) {
     });
 
     socket.on('new_game', function (data) {
-      setModalToDisplay(GAME_START)
+      // setModalToDisplay(GAME_START)
       socket.emit('start', {
         username,
         roomId,

@@ -5,5 +5,5 @@ from .player import Player
 
 class Human(Player):
   def __init__(self, username, sid):
-    super(username)
+    super().__init__(username)
     self.sid = sid

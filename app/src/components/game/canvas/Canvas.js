@@ -29,10 +29,14 @@ export default function Canvas(props) {
 
     // Callback function
     socket.on('receive_draw', data => {
-      console.log(data)
       p5.stroke(data.color)
       p5.strokeWeight(data.strokeWidth)
       p5.line(data.x1, data.y1, data.x2, data.y2)
+    });
+
+    socket.on('clear_canvas', data => {
+      console.log('clearing canvas...');
+      p5.clear();
     })
 
     p5.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT).parent(canvasParentRef);
@@ -56,7 +60,6 @@ export default function Canvas(props) {
     const color = 'rgba(100%,0%,100%,0.5)';
     const strokeWidth = 4;
     const penLifted = 0;
-    console.log(p5)
     p5.stroke(color)
     p5.strokeWeight(strokeWidth)
     p5.line(p5.pmouseX, p5.pmouseY, p5.mouseX, p5.mouseY);
