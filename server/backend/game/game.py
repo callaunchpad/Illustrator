@@ -9,11 +9,13 @@ import numpy as np
 from .human import Human
 from .bot import Bot
 from .. import socketio
+import asyncio
 
 class Game:
   def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","broccoli","baseball"]):
     self.players = players
-    self.players.append(Bot('ResNet50', deck))
+    self.bot = Bot('ResNet50', deck)
+    self.players.append(self.bot)
     self.state = GameState()
     self.deck = deck
     self.leaderboard = {}     # list of ordered tuples
@@ -86,7 +88,7 @@ class Round:
     print("THE CHOICE IS...." + self.choice)
     self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
-    await self.drawing.draw()
+    await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess()])
     self.players_drawn.append(player)
 
   def choosePlayer(self):
@@ -131,6 +133,7 @@ class Drawing:
     self.timer = Timer(seconds + 3)  # to account for later wait_time stall
     self.time_limit = 30
     self.game_round = game_round
+    self.stroke_list = []
   
   async def draw(self):
     # Wait for 3 seconds before beginning the drawing
@@ -145,7 +148,8 @@ class Drawing:
       model_outputs = self.artist.generate(self.choice)
 
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
-      # self.showLeaderboard()
+      self.showLeaderboard()
+
       if len(model_outputs) > 0:
         await sio.emit("receive_draw", model_outputs.pop(0), room=roomId)
         await sio.sleep(.05)
@@ -155,9 +159,9 @@ class Drawing:
     
     await sio.emit("show_leaderboard", {"leaderboard": self.game_round.game.leaderboard}, room=self.game_round.game.id)
 
-  def checkGuess(self, playerId, username, guess):
-    print("THE GUESS IS " + guess + "AND THE CORRECT ONE IS " + self.choice)
-    if guess == self.choice and (playerId not in self.correct_players):
+  def checkGuess(self, player_instance, username, guess):
+    print("THE GUESS IS " + guess + " AND THE CORRECT ONE IS " + self.choice)
+    if guess == self.choice and (player_instance not in self.correct_players):
       player = None
       for p in self.game_round.players_copy:
         if p.username == username:
@@ -172,3 +176,25 @@ class Drawing:
     else:
       self.guesses.append(guess)
       return False
+
+  def add_stroke(self, stroke):
+    self.stroke_list.append(stroke)
+
+  async def bot_guess(self):
+    while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
+      roomId = self.game_round.game.id
+      sio    = self.game_round.game.socketio_instance
+      await sio.sleep(5)
+      bot_instance = self.game_round.game.bot
+      if isinstance(bot_instance, Bot):
+        bot_guess = bot_instance.classify(self.stroke_list)
+        # TODO: maybe streamline this better??
+        correct = self.checkGuess(bot_instance, 'bot', bot_guess)
+        data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
+        if correct:
+          print("CORRECT GUESS!")
+          await sio.emit('receive_answer', data, room=roomId)
+        else:
+          print("INCORRECT GUESS!")
+          await sio.emit('receive_guess', data, room=roomId)
+

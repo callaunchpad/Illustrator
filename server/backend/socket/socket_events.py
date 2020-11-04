@@ -32,7 +32,7 @@ ROOMS = defaultdict(list)
 ROOMS_GAMES = {'1': Game('1', sio, 4)}
 
 """
-hanlder for when a user connects to the server
+handler for when a user connects to the server
 """
 # @sio.event
 # def connect(sid, environ):
@@ -51,6 +51,8 @@ also should append data that'll get processed into an image to feed into the cla
 async def on_send_draw(sid, data):
   print("SENDING DRAWING")
   room = data['roomId']
+  game = ROOMS_GAMES[room]
+  game.game_round.drawing.add_stroke(data)
   # with open("circle.txt", "a") as myfile:
   #   myfile.write(str(data) + "\n")
   # TODO: alter game state for when drawing occurs
