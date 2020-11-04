@@ -150,6 +150,7 @@ pygame==1.9.6
 pyglet==1.5.0
 Pygments==2.6.1
 pygtrie==2.3.3
+PyJWT==1.7.1
 pymongo==3.11.0
 pyparsing==2.4.7
 pypng==0.0.20
@@ -199,6 +200,7 @@ tifffile==2020.7.24
 tornado==6.0.4
 tqdm==4.48.2
 traitlets==4.3.3
+twilio==6.46.0
 typeguard==2.9.1
 typing-extensions==3.7.4.2
 uritemplate==3.0.1
