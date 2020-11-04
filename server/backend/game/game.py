@@ -148,7 +148,7 @@ class Drawing:
       model_outputs = self.artist.generate(self.choice)
 
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
-      self.showLeaderboard()
+      # self.showLeaderboard()
 
       if len(model_outputs) > 0:
         await sio.emit("receive_draw", model_outputs.pop(0), room=roomId)
