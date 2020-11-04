@@ -4,3 +4,4 @@ sketch_rnn
 **/__pycache__
 **/datasets/
 **/training_logs
+Classification/45.h5
