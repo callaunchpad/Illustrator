@@ -1,15 +1,20 @@
-import numpy as np
 import os
+from os import path
+import os
+from os import path
+import sys
+cwd = os.path.dirname(os.path.realpath(__file__))
+
 import matplotlib.pyplot as plt
 from matplotlib import image
-# import keras
-import tensorflow.keras as keras
-# import tensorflow as tf
+import numpy as np
 import time
+import tensorflow as tf
+import keras
 
 # Read paths from gsutil ls output
 paths = []
-with open('names.txt','r') as f:
+with open(path.join(cwd, 'names.txt'),'r') as f:
     for line in f.readlines():
         if "full" in line:
             continue
@@ -19,9 +24,8 @@ paths = np.array(paths)
 #Get Human-Readable names from paths
 names = [path.split('/')[-1].replace('.npz','') for path in paths]
 
-# Load Model
-model = keras.models.load_model('45.h5')
-
+# load model
+model = keras.models.load_model(path.join(cwd, '45.h5'))
 def read(path):
 	'''
 	Reads in time series given the path to the time series txt data
@@ -34,31 +38,51 @@ def convert(series):
   '''
   xy_img = []
   for line in series:
-    temp = eval(line)
-    xy_img.append((temp['x1'],-1 * temp['y1'],temp['x2'],-1 * temp['y2']))
+    # line = eval(line)
+    xy_img.append((line['x1'],-1 * line['y1'], line['x2'],-1 * line['y2'], line['penLifted']))
   return xy_img
     
 def get_img(xy_img):
   '''
   Get an image to pass into ResNet from the strokes
   '''
+  # i = 0
+  # xs, ys = [], []
+  # while i < len(xy_img):
+  #   line = xy_img[i]
+  #   penLifted = line[-1]
+  #   while i < len(xy_img)-1 and not penLifted:
+  #     xs.extend([line[0], line[2]])
+  #     ys.extend([line[1], line[3]])
+  #     i += 1
+  #     line = xy_img[i]
+  #     penLifted = line[-1]
+  #   i += 1
+  #   plt.plot(xs, ys)
+  #   plt.axis('off')
+  #   xs, ys = [], []
   for line in xy_img:
     plt.plot([line[0], line[2]],[line[1], line[3]])
     plt.axis('off')
-    plt.savefig('temp.jpg',facecolor='black')
-    temp = image.imread("temp.jpg")
-    plt.clf()
-    plt.close()
+  plt.savefig(path.join(cwd, 'temp.jpg'),facecolor='black')
+  temp = image.imread(path.join(cwd, "temp.jpg"))
+  plt.clf()
+  plt.close()
   return temp
 
-def pred(img, model, classes):
+def pred(img, classes):
   '''
   Predict the class with the highest probability
   '''
-  return classes[np.argmax(model.predict(np.array([img])))]
+  res = classes[np.argmax(model.predict(np.array([img])))]
+  return res
       
-series = read('airplane.txt')
-xy_img = convert(series)
-img = get_img(xy_img)
-
-pred(img, model, names)
+def classify(series):
+  # series = read(path.join(cwd, 'airplane.txt'))
+  xy_img = convert(series)
+  print('converted series')
+  img = get_img(xy_img)
+  print("got image, starting prediction")
+  res = pred(img, names)
+  print("res is: ", res)
+  return res

@@ -10,8 +10,8 @@ from keras import backend as K
 
 import socketio
 from collections import defaultdict
-from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
-from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
+# from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
+# from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
 
 from ..game.game import *
 import json
@@ -188,53 +188,53 @@ def on_receive_word(sid, data):
 """
 Function for decoding a latent space factor into a sketch
 """
-def decode(seq2seq, model_params, z_input=None, draw_mode=False, temperature=0.1, factor=0.2):
-    z = None
-    if z_input is not None:
-        z = z_input
-    sample_strokes, m = sample(seq2seq, seq_len=model_params.max_seq_len, temperature=temperature, z=z)
-    strokes = to_normal_strokes(sample_strokes)
-    # if draw_mode:
-    #     draw_strokes(strokes, factor)
-    return strokes
+# def decode(seq2seq, model_params, z_input=None, draw_mode=False, temperature=0.1, factor=0.2):
+#     z = None
+#     if z_input is not None:
+#         z = z_input
+#     sample_strokes, m = sample(seq2seq, seq_len=model_params.max_seq_len, temperature=temperature, z=z)
+#     strokes = to_normal_strokes(sample_strokes)
+#     # if draw_mode:
+#     #     draw_strokes(strokes, factor)
+#     return strokes
 
-"""
-template for sampling from a really poorly trained sketchrnn for airplanes
-"""
-@sio.on('test_sketch_rnn')
-def on_test_sketch_rnn(sid, data):
-  room = data['roomId']
-  # load the model hparams from the model_config json
-  with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
-    model_params = json.load(f)
-  model_params = DotDict(model_params)
-  # instantiate a seq2seq instance
-  template_model = Seq2seqModel(model_params)
-  hd5_path = os.path.join(dirname, 'model_weights/airplane.hdf5')
-  template_model.load_trained_weights(hd5_path)
-  # create sampling models for decoding/random sketch generation
-  template_model.make_sampling_models()
+# """
+# template for sampling from a really poorly trained sketchrnn for airplanes
+# """
+# @sio.on('test_sketch_rnn')
+# def on_test_sketch_rnn(sid, data):
+#   room = data['roomId']
+#   # load the model hparams from the model_config json
+#   with open(os.path.join(dirname, 'model_weights/airplane_model_config.json'), 'r') as f:
+#     model_params = json.load(f)
+#   model_params = DotDict(model_params)
+#   # instantiate a seq2seq instance
+#   template_model = Seq2seqModel(model_params)
+#   hd5_path = os.path.join(dirname, 'model_weights/airplane.hdf5')
+#   template_model.load_trained_weights(hd5_path)
+#   # create sampling models for decoding/random sketch generation
+#   template_model.make_sampling_models()
 
-  # sample a latent vector and feed into the decoder for random sketch generation
-  random_latent_sample = np.expand_dims(np.random.randn(model_params.z_size),0)
-  strokes = decode(template_model, model_params, z_input=random_latent_sample)
-  print(strokes)
+#   # sample a latent vector and feed into the decoder for random sketch generation
+#   random_latent_sample = np.expand_dims(np.random.randn(model_params.z_size),0)
+#   strokes = decode(template_model, model_params, z_input=random_latent_sample)
+#   print(strokes)
 
-  # transform strokes list to correct drawing data format
-  x, y = 250, 250
-  for stroke in strokes:
-    x += stroke[0]/.1
-    y += stroke[1]/.1
-    sio.emit('receive_draw', {
-      'x': x,
-      'y': y,
-      'pX': x,
-      'pY': y,
-      'strokeWidth': 4,
-      'color': 'rgba(100%,0%,100%,0.5)'
-    }, room=room)
-    # stroke[2] is a binary indicator for if the pen was lifted or not (1 means lifted)
-    if (stroke[2] == 1):
-      time.sleep(.01)
-  # need to clear the tf session between model inference calls for some reason
-  K.clear_session()
+#   # transform strokes list to correct drawing data format
+#   x, y = 250, 250
+#   for stroke in strokes:
+#     x += stroke[0]/.1
+#     y += stroke[1]/.1
+#     sio.emit('receive_draw', {
+#       'x': x,
+#       'y': y,
+#       'pX': x,
+#       'pY': y,
+#       'strokeWidth': 4,
+#       'color': 'rgba(100%,0%,100%,0.5)'
+#     }, room=room)
+#     # stroke[2] is a binary indicator for if the pen was lifted or not (1 means lifted)
+#     if (stroke[2] == 1):
+#       time.sleep(.01)
+#   # need to clear the tf session between model inference calls for some reason
+#   K.clear_session()

@@ -18,7 +18,7 @@ class Game:
     self.players.append(self.bot)
     self.state = GameState()
     self.deck = deck
-    self.leaderboard = {}     # list of ordered tuples
+    self.leaderboard = {'bot': 0}
     self.num_rounds = num_rounds   # initialized by game creator
     self.curr_round = 1
     self.id = id
@@ -88,7 +88,10 @@ class Round:
     print("THE CHOICE IS...." + self.choice)
     self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
-    await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess()])
+    if (isinstance(self.drawing.artist, Bot)):
+      await self.drawing.draw()
+    else:
+      await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess()])
     self.players_drawn.append(player)
 
   def choosePlayer(self):
@@ -187,7 +190,7 @@ class Drawing:
       await sio.sleep(5)
       bot_instance = self.game_round.game.bot
       if isinstance(bot_instance, Bot):
-        bot_guess = bot_instance.classify(self.stroke_list)
+        bot_guess = await bot_instance.classify(self.stroke_list)
         # TODO: maybe streamline this better??
         correct = self.checkGuess(bot_instance, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}

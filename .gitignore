@@ -1,6 +1,7 @@
 **/node_modules
 **/venv
+**/class_env
 **/__pycache__
 **/datasets/
 **/training_logs
-Classification/45.h5
+classification/45.h5

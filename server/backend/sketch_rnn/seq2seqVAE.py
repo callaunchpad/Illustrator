@@ -6,7 +6,8 @@ from keras.models import Model
 from keras.layers import Input
 from keras.layers.merge import Concatenate
 from keras.layers.core import RepeatVector
-from keras.layers import Dense, LSTM, CuDNNLSTM, Bidirectional, Lambda
+# from keras.layers import Dense, LSTM, CuDNNLSTM, Bidirectional, Lambda
+from keras.layers import Dense, LSTM, Bidirectional, Lambda
 from keras.activations import softmax, exponential, tanh
 from keras import backend as K
 from keras.initializers import RandomNormal

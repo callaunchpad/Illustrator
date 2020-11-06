@@ -2,6 +2,7 @@
 Class for defining a bot player
 """
 import sys
+import aiohttp
 from os import path
 from .player import Player
 from ..sketch_rnn.sketch_output import get_sketch_dictionary
@@ -16,9 +17,16 @@ class Bot(Player):
     self.deck  = deck # list of words to choose from
     self.rankings = deck # words ranked by the model's output probabilities
 
-  def classify(self, strokes):
+  async def classify(self, strokes):
     print('classifying sketch')
-    return 'apple'
+    pred = 'oaijefoiawe'
+    async with aiohttp.ClientSession() as session:
+      body = {'strokes': strokes}
+      async with session.post('http://0.0.0.0:8080/classify', json=body) as resp:
+        json = await resp.json()
+        print(json)
+        pred = json['pred']
+    return pred
 
   def generate(self, word):
     print('generating strokes')
