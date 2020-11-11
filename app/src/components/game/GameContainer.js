@@ -133,6 +133,10 @@ function GameContainer(props) {
       setLeaderboard(data.leaderboard);
     })
 
+    socket.on('reveal_letter', function (data) {
+      console.log('reveal letter: ', data);
+    })
+
     // disconnect the socket when component unmounts
     return () => {
       console.log("disconnecting...");

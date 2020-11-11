@@ -23,6 +23,7 @@ class Bot(Player):
     async with aiohttp.ClientSession() as session:
       body = {'strokes': strokes}
       async with session.post('http://0.0.0.0:8080/classify', json=body) as resp:
+      #async with session.post('localhost:3000/classify', json=body) as resp:
         json = await resp.json()
         print(json)
         pred = json['pred']

@@ -91,7 +91,7 @@ class Round:
     if (isinstance(self.drawing.artist, Bot)):
       await self.drawing.draw()
     else:
-      await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess()])
+      await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess(), self.drawing.revealLetters()])
     self.players_drawn.append(player)
 
   def choosePlayer(self):
@@ -133,6 +133,7 @@ class Drawing:
     self.correct_players = []
     self.artist = artist
     self.choice = choice
+    self.shown_letters = np.arange(len(choice))  # indexes of letters not shown
     self.timer = Timer(seconds + 3)  # to account for later wait_time stall
     self.time_limit = 30
     self.game_round = game_round
@@ -142,10 +143,15 @@ class Drawing:
     # Wait for 3 seconds before beginning the drawing
     # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess
+  
 
     # if the artist is a bot
     roomId = self.game_round.game.id
     sio    = self.game_round.game.socketio_instance
+
+    data =  {"roomId":roomId, "length_word":len(self.choice)}
+    await sio.emit('establish_word', data, room=roomId)
+
     model_outputs = []
     if isinstance(self.artist, Bot):
       model_outputs = self.artist.generate(self.choice)
@@ -200,4 +206,22 @@ class Drawing:
         else:
           print("INCORRECT GUESS!")
           await sio.emit('receive_guess', data, room=roomId)
+
+  async def revealLetters(self):
+    len_choice = len(self.choice)
+    revealed_letters = len_choice // 2   # the final result of the revealed letters will be 1/2 the word length
+
+    delay = self.time_limit / revealed_letters  # delay time
+    await sio.sleep(delay / 2)  # delay in beginning
+    while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
+      roomId = self.game_round.game.id
+      sio    = self.game_round.game.socketio_instance
+
+      show = np.random.choice(self.shown_letters, 1, replace=False)[0]
+      data = {'roomId': roomId, 'show': [int(show), self.choice[show]]}
+      self.shown_letters = self.shown_letters[self.shown_letters != show]
+      print("REVEALING DATA:")
+      print(data["show"])
+      await sio.emit("reveal_letter", data, room=roomId)
+      await sio.sleep(delay)
 
