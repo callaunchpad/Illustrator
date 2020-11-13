@@ -10,17 +10,16 @@ export default function Word(props) {
     return str.substring(0,index) + chr + str.substring(index+1);
   }
 
-  let array = revealLetter
   const placeholder = '_';
   let str = placeholder.repeat(chosenWord.length);
-  for (index = 0; index < array.length; index++) { 
-    str = setCharAt(str, array[index][0], array[index][1])
+  for (var index = 0; index < revealLetter.length; index++) { 
+    str = setCharAt(str, revealLetter[index][0], revealLetter[index][1]);
   } 
 
   return (
     <Container style={{padding: 0}}>
     <p>THIS IS THE GUESSING THING: </p>
-      <p style="letter-spacing: 5;">{str}</p>
+      <p>{str}</p>
     </Container>
   )
 }

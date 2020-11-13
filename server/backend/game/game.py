@@ -138,7 +138,7 @@ class Drawing:
     self.time_limit = 30
     self.game_round = game_round
     self.stroke_list = []
-    self.revealed_letters_list = []
+    self.letters_list = []
   
   async def draw(self):
     # Wait for 3 seconds before beginning the drawing
@@ -150,8 +150,9 @@ class Drawing:
     roomId = self.game_round.game.id
     sio    = self.game_round.game.socketio_instance
 
-    data =  {"roomId":roomId, "word": self.choice}
+    data =  {"roomId": roomId, "word": self.choice, "show": []}
     await sio.emit('establish_word', data, room=roomId)
+    await sio.emit('reveal_letter', data, room=roomId)
 
     model_outputs = []
     if isinstance(self.artist, Bot):
@@ -212,15 +213,16 @@ class Drawing:
     len_choice = len(self.choice)
     revealed_letters = len_choice // 2   # the final result of the revealed letters will be 1/2 the word length
 
+    sio   = self.game_round.game.socketio_instance
     delay = self.time_limit / revealed_letters  # delay time
-    sio    = self.game_round.game.socketio_instance
     await sio.sleep(delay / 2)  # delay in beginning
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       roomId = self.game_round.game.id
-
+      
       show = np.random.choice(self.shown_letters, 1, replace=False)[0]
-      self.reveal_letter_list.append([int(show), self.choice[show]])
-      data = {'roomId': roomId, 'show': self.reveal_letter_list}
+      self.letters_list.append([int(show), self.choice[show]])
+      data = {'roomId': roomId, 'show': self.letters_list}
+
       self.shown_letters = self.shown_letters[self.shown_letters != show]
       print("REVEALING DATA:")
       print(data["show"])
