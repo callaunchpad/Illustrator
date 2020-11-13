@@ -10,11 +10,11 @@ export default function Word(props) {
     return str.substring(0,index) + chr + str.substring(index+1);
   }
 
-  let array = revealLetter
   const placeholder = '_';
   let str = placeholder.repeat(chosenWord.length);
-  for (index = 0; index < array.length; index++) { 
-    str = setCharAt(str, array[index][0], array[index][1])
+  var index;
+  for (index = 0; index < revealLetter.length; index++) { 
+    str = setCharAt(str, revealLetter[index][0], revealLetter[index][1]);
   } 
 
   return (

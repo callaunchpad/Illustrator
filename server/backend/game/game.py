@@ -219,8 +219,8 @@ class Drawing:
       roomId = self.game_round.game.id
 
       show = np.random.choice(self.shown_letters, 1, replace=False)[0]
-      self.reveal_letter_list.append([int(show), self.choice[show]])
-      data = {'roomId': roomId, 'show': self.reveal_letter_list}
+      self.revealed_letter_list.append([int(show), self.choice[show]])
+      data = {'roomId': roomId, 'show': self.revealed_letter_list}
       self.shown_letters = self.shown_letters[self.shown_letters != show]
       print("REVEALING DATA:")
       print(data["show"])
