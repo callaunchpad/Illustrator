@@ -20,7 +20,7 @@ export default function Word(props) {
   return (
     <Container style={{padding: 0}}>
     <p>THIS IS THE GUESSING THING: </p>
-      <p style="letter-spacing: 5;">{str}</p>
+      <p style={{ letterSpacing: 4 }}>{str}</p>
     </Container>
   )
 }
