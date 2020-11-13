@@ -42,6 +42,7 @@ function GameContainer(props) {
   const [wordChoices, setWordChoices] = React.useState([]); // list of word choices to be displayed
   const [leaderboard, setLeaderboard] = React.useState({});
   const [chosenWord, setChosenWord] = React.useState('');
+  const [revealLetter, setRevealLetter] = React.useState([]);
 
   const messagesRef = React.useRef(messages);
   const playersRef  = React.useRef(players);
@@ -118,7 +119,6 @@ function GameContainer(props) {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
       setModalToDisplay(CHOOSE_WORD);
-
       // const word = await chooseWord();
       // console.log("choose_word: ", word);
       // return { word, }
@@ -132,9 +132,15 @@ function GameContainer(props) {
       console.log('leaderboard: ', data);
       setLeaderboard(data.leaderboard);
     })
+    
+    socket.on('establish_word', function (data) {
+      setChosenWord(data.word)
+      console.log('establish word: ', data.word);
+    })
 
     socket.on('reveal_letter', function (data) {
-      console.log('reveal letter: ', data);
+      setRevealLetter(data.show)
+      console.log('reveal letter: ', data.show);
     })
 
     // disconnect the socket when component unmounts
@@ -179,6 +185,8 @@ function GameContainer(props) {
           messages={messages}
           setMessages={setMessages}
           leaderboard={leaderboard}
+          chosenWord={chosenWord}
+          revealLetter={revealLetter}
         />
       );
     }

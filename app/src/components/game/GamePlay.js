@@ -5,6 +5,8 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
 import Chat from './Chat';
 import Leaderboard from './Leaderboard';
+import Word from './Word';
+
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
@@ -36,6 +38,12 @@ export default function GamePlay(props) {
         <Form onSubmit={startGame}>
           <Button type="submit">Start Game</Button>
         </Form>
+      </Row>
+      <Row>
+        <Word
+            chosenWord={props.chosenWord}
+            revealLetter={props.revealLetter}
+        />
       </Row>
       <Row>
         <Col xs={2} style={{
