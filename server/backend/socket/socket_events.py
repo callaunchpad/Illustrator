@@ -70,12 +70,16 @@ async def on_send_guess(sid, data):
   game = ROOMS_GAMES[room]
   # TODO: alter game state for when guess occurs
   correct = game.game_round.drawing.checkGuess(sid, username, guess)
-  if correct:
+  if correct == 1:
     print("CORRECT GUESS!")
     await sio.emit('receive_answer', data, room=room)
-  else:
+  elif correct == 2:
     print("INCORRECT GUESS!")
     await sio.emit('receive_guess', data, room=room)
+  elif correct == 3:
+    await sio.emit('receive_own_guess', data, room=sid)
+  elif correct == 4:
+    await sio.emit('already_guessed', data, room=sid)
 
 """
 handler for when a user creates a game
@@ -169,7 +173,7 @@ async def on_leave(sid, data):
   room = data['roomId']
   # ROOMS.pop(room)
 
-  ROOMS_GAMES[room].players.pop(sid)
+  ROOMS_GAMES[room].removePlayer(sid)
   sio.leave_room(sid, room)
   await sio.emit('player_leave', data, room=room)
   # send(username + ' has left the room.', room=room)

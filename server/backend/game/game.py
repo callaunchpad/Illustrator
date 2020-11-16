@@ -46,6 +46,15 @@ class Game:
     self.players.append(Human(username, id))
     self.leaderboard[username] = 0
     # self.leaderboard[id] = 0
+  
+  def removePlayer(self, id):
+    for human in self.players:
+      if human.sid == id:
+        self.players.pop(human)
+      if human in self.game_round.players_drawn:
+        self.game_round.players_drawn.pop(human)
+      if human in self.game_round.players_copy:
+        self.players_copy.pop(human)
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
@@ -174,6 +183,10 @@ class Drawing:
 
   def checkGuess(self, player_instance, username, guess):
     print("THE GUESS IS " + guess + " AND THE CORRECT ONE IS " + self.choice)
+    if (player_instance == self.artist.sid):
+      return 3
+    if (player_instance in self.correct_players):
+      return 4
     if guess == self.choice and (player_instance != self.artist.sid) and (player_instance not in self.correct_players):
       player = None
       for p in self.game_round.players_copy:
@@ -181,14 +194,14 @@ class Drawing:
           player = p
       if player == None:
         print("couldn't find player with username: ", username)
-      self.correct_players.append(player)
+      self.correct_players.append(player_instance)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
       self.game_round.game.leaderboard[username] += self.time_limit - self.timer.current_time()
-      return True
+      return 1
     else:
       self.guesses.append(guess)
-      return False
+      return 2
 
   def add_stroke(self, stroke):
     self.stroke_list.append(stroke)
@@ -204,7 +217,7 @@ class Drawing:
         # TODO: maybe streamline this better??
         correct = self.checkGuess(bot_instance.sid, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
-        if correct:
+        if correct == 1:
           print("CORRECT GUESS!")
           await sio.emit('receive_answer', data, room=roomId)
         else:
