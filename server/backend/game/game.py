@@ -89,12 +89,14 @@ class Round:
     self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
     if (isinstance(self.drawing.artist, Bot)):
-      await self.drawing.draw()
+      await asyncio.wait([self.drawing.draw(), self.drawing.revealLetters()])
     else:
       await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess(), self.drawing.revealLetters()])
     self.players_drawn.append(player)
 
   def choosePlayer(self):
+    print("PLAYERSCOPY")
+    print(self.players_copy)
     player = self.players_copy[0]   # choose player who hasn't drawn
     self.players_copy.remove(player)  # delete from possible players to draw
     return player    # return player object
@@ -172,7 +174,7 @@ class Drawing:
 
   def checkGuess(self, player_instance, username, guess):
     print("THE GUESS IS " + guess + " AND THE CORRECT ONE IS " + self.choice)
-    if guess == self.choice and (player_instance not in self.correct_players):
+    if guess == self.choice and (player_instance != self.artist.sid) and (player_instance not in self.correct_players):
       player = None
       for p in self.game_round.players_copy:
         if p.username == username:
@@ -200,7 +202,7 @@ class Drawing:
       if isinstance(bot_instance, Bot):
         bot_guess = await bot_instance.classify(self.stroke_list)
         # TODO: maybe streamline this better??
-        correct = self.checkGuess(bot_instance, 'bot', bot_guess)
+        correct = self.checkGuess(bot_instance.sid, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
         if correct:
           print("CORRECT GUESS!")

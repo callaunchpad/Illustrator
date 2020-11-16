@@ -110,7 +110,8 @@ async def on_start_game(sid, data):
   print("START GAME SOCKET")
   print("data: " + str(data))
   room = data["roomId"]  # TODO: How to generate random room ID
-  await sio.emit('new_game', data, room=room)
+  print("EMITTING NEW_GAME")
+  await sio.emit('new_game', data, room=sid)
   # ROOMS_GAMES[room].playGame()
   # print("ROOMS_GAMES:")
   # print(ROOMS_GAMES.items())
