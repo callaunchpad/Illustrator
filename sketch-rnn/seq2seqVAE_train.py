@@ -9,6 +9,11 @@ from __future__ import print_function
 
 import argparse
 import json
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+import numpy as np
 import os
 import sys
 
@@ -18,11 +23,7 @@ from utils import load_dataset,batch_generator, KLWeightScheduler, LearningRateS
     TensorBoardLR, DotDict, Logger
 
 from twilio.rest import Client
-#test call
-#account_sid = 'AC13d043ae8f4f071bcfe1c611b846e4cb'
-#auth_token = '00e46d4191ec27e852a7227184f2debd'
-#client=Client(account_sid,auth_token)
-#call = client.calls.create(to='+16262151130',from_='+12058810131',url='http://demo.twilio.com/docs/classic.mp3')
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 def get_callbacks_dict(seq2seq, model_params, experiment_path=''):
     """ create a dictionary of all used callbacks """
@@ -100,13 +101,28 @@ def main(args, hparams):
 
     # Train
     steps_per_epoch = model_params.save_every if model_params.save_every is not None else train_set.num_batches
-    model.fit_generator(generator=train_generator, steps_per_epoch=steps_per_epoch, epochs=model_params.epochs,
+    H = model.fit_generator(generator=train_generator, steps_per_epoch=steps_per_epoch, epochs=model_params.epochs,
                         validation_data=val_generator, validation_steps=valid_set.num_batches,
                         callbacks=[cbk for cbk in model_callbacks.values()],
                         initial_epoch=args.initial_epoch)
 
     print("[INFO] serializing network...")
     model.save(os.path.join(experiment_path,'weights.hdf5'))
+
+    plt.style.use("ggplot")
+    plt.figure()
+    N = model_params.epochs
+    plt.plot(np.arange(0, N), H.history["loss"], label="train_loss")
+    plt.plot(np.arange(0, N), H.history["val_loss"], label="val_loss")
+    plt.plot(np.arange(0, N), H.history["calculate_kl_loss"], label="train_kl_loss")
+    plt.plot(np.arange(0, N), H.history["val_calculate_kl_loss"], label="val_kl_loss")
+    plt.plot(np.arange(0, N), H.history["calculate_md_loss"], label="val_md_loss")
+    plt.plot(np.arange(0, N), H.history["val_calculate_md_loss"], label="val_md_loss")
+    plt.title("Training Loss and Accuracy")
+    plt.xlabel("Epoch #")
+    plt.ylabel("Loss/Accuracy")
+    plt.legend(loc="lower left")
+    plt.savefig("plot.png")
 
 if __name__ == '__main__':
 
@@ -160,9 +176,9 @@ if __name__ == '__main__':
     main(args, hparams)
 
     #calling code to notify end of training
-    #account_sid = 'AC13d043ae8f4f071bcfe1c611b846e4cb'
-    #auth_token = '00e46d4191ec27e852a7227184f2debd'
+    #account_sid = 'PUT SID HERE'
+    #auth_token = 'PUT AUTH TOKEN HERE'
     #client=Client(account_sid,auth_token)
 
-    #call = client.calls.create(to='+16262151130',from_='+12058810131',url='http://demo.twilio.com/docs/classic.mp3')
+    #call = client.calls.create(to='PUT YOUR NUMBER HERE',from_='PUT REGISTERED NUMBER HERE',url='http://demo.twilio.com/docs/classic.mp3')
     print("done.")
