@@ -68,7 +68,7 @@ function Home(props) {
         <Form.Group controlId="formName">
           {/* <Form.Label style={{color: 'white'}}>Name</Form.Label> */}
           <Form.Row>
-            <Col>
+            <Col xs={9}>
               <Form.Control
                 type="text"
                 placeholder="Enter name..."

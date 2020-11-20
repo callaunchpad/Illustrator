@@ -5,7 +5,7 @@ export default function Chat(props) {
   return (
     <Container>
       <Row>
-        <span style={{fontSize: '12pt', color: 'black'}}>this is the chat</span>
+        <span style={{fontSize: '12pt', color: 'black'}}>Chat Window</span>
       </Row>
       <Row>
         <ListGroup>

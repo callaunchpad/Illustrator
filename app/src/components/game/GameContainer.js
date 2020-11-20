@@ -43,6 +43,7 @@ function GameContainer(props) {
   const [leaderboard, setLeaderboard] = React.useState({});
   const [chosenWord, setChosenWord] = React.useState('');
   const [revealLetter, setRevealLetter] = React.useState([]);
+  const [roomIdState, setRoomIdState] = React.useState('');
 
   const messagesRef = React.useRef(messages);
   const playersRef  = React.useRef(players);
@@ -64,6 +65,7 @@ function GameContainer(props) {
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
 
+  let newRoomId = '';
   const { username, roomId } = globalContext;
   if (username === undefined || username.length === 0) {
     console.log("No username");
@@ -71,18 +73,21 @@ function GameContainer(props) {
   }
 
   React.useEffect(() => {
-    setGameStart(true);
     socket.on('connect', function() {
       if (roomId === undefined || roomId.length === 0) {
         let room = Math.random().toString(36).substring(7);
         console.log(`Generating room id and creating game...`);
         console.log(`room id is ${room}`);
+        newRoomId = room;
+        setRoomIdState(room);
         socket.emit('create_room', {
           username,
           'roomId': room,
         });
       } else {
         console.log(`Websocket connected! Now joining room: ${roomId}`);
+        newRoomId = roomId;
+        setRoomIdState(roomId);
         socket.emit('join', {
           username,
           roomId,
@@ -128,7 +133,7 @@ function GameContainer(props) {
       console.log(data);
       socket.emit('start', {
         username,
-        roomId,
+        'roomId': newRoomId,
       });
     });
 
@@ -170,7 +175,7 @@ function GameContainer(props) {
       console.log("disconnecting...");
       socket.emit('leave', {
         username,
-        roomId,
+        'roomId': newRoomId,
       });
       socket.disconnect();
     };
@@ -190,7 +195,7 @@ function GameContainer(props) {
     console.log("running on choose word: ", word);
     socket.emit("receive_word", {
       username,
-      roomId,
+      'roomId': newRoomId,
       word,
     });
     setChosenWord(word);
@@ -199,20 +204,18 @@ function GameContainer(props) {
   }
 
   const displayScreen = () => {
-    if (gameStart) {
-      return (
-        <GamePlay
-          socket={socket}
-          guesses={guesses}
-          messages={messages}
-          setMessages={setMessages}
-          leaderboard={leaderboard}
-          chosenWord={chosenWord}
-          revealLetter={revealLetter}
-        />
-      );
-    }
-    return <Lobby />;
+    return (
+      <GamePlay
+        socket={socket}
+        guesses={guesses}
+        messages={messages}
+        setMessages={setMessages}
+        leaderboard={leaderboard}
+        chosenWord={chosenWord}
+        revealLetter={revealLetter}
+        roomId={roomIdState}
+      />
+    );
   }
 
   const displayModalContent = () => {

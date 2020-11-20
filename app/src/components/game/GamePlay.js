@@ -10,7 +10,8 @@ import Word from './Word';
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
-  const { username, roomId } = globalContext;
+  const { username } = globalContext;
+  const { roomId } = props;
   const sendGuess = (e) => {
     // props.setMessages(props.messages.concat("hello"));
     // console.log('messages: ', props.messages);
@@ -35,9 +36,14 @@ export default function GamePlay(props) {
   return (
     <Container>
       <Row>
-        <Form onSubmit={startGame}>
-          <Button type="submit">Start Game</Button>
-        </Form>
+        <Col xs={2}>
+          <Form onSubmit={startGame}>
+            <Button type="submit">Start Game</Button>
+          </Form>
+        </Col>
+        <Col xs={6}>
+        <p>The room id is: {roomId}</p>
+        </Col> 
       </Row>
       <Row>
         <Word
@@ -58,6 +64,7 @@ export default function GamePlay(props) {
         <Col xs={6}>
           <Canvas
             socket={props.socket}
+            roomId={props.roomId}
           />
         </Col>
         <Col xs={4} style={{backgroundColor: 'white'}}>

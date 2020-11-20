@@ -27,8 +27,6 @@ sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*', logge
 
 # dict for tracking active rooms
 # maps room to list of players
-ROOMS = defaultdict(list)
-
 ROOMS_GAMES = {'1': Game('1', sio, 4)}
 
 """
@@ -52,6 +50,7 @@ async def on_send_draw(sid, data):
   print("SENDING DRAWING")
   room = data['roomId']
   game = ROOMS_GAMES[room]
+  print('SEND DRAW ROOM ID IS: ' + room)
   game.game_round.drawing.add_stroke(data)
   # with open("circle.txt", "a") as myfile:
   #   myfile.write(str(data) + "\n")
@@ -65,10 +64,12 @@ handler for when a player submits a guess
 async def on_send_guess(sid, data):
   print("SENDING GUESS")
   username = data['username']
+  
   room = data['roomId']
+  print('SEND GUESS ROOM ID IS: ' + room)
   guess = data['guess']
   game = ROOMS_GAMES[room]
-  # TODO: alter game state for when guess occurs
+
   correct = game.game_round.drawing.checkGuess(sid, username, guess)
   if correct == 1:
     print("CORRECT GUESS!")
@@ -90,20 +91,18 @@ async def on_create_room(sid, data):
   """Create a game lobby"""
   print("CREATING GAME SOCKET")
   print('data: ' + str(data))
-  room = data['roomId'] # TODO generate random room ID
+  room = data['roomId']
+  username = data['username']
   # Use default join_room function: puts the user in a room
   sio.enter_room(sid, room)
-  # may not be necessary
-  # ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, sio, 3, players=[sid]) # need num_rounds from client? create game interface
-  # print("ROOMS:")
-  # print(ROOMS.items())
+
+  ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
+  ROOMS_GAMES[room].addPlayer(sid, username)
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES[1].players)
+  print(ROOMS_GAMES[room].players)
   await sio.emit('new_player_join', data, room=room)
-  # emit("new_game", data, room=room)
   
 """
 hanlder for when a user starts a game
@@ -113,19 +112,9 @@ async def on_start_game(sid, data):
   """Start a created game"""
   print("START GAME SOCKET")
   print("data: " + str(data))
-  room = data["roomId"]  # TODO: How to generate random room ID
+  room = data["roomId"]
   print("EMITTING NEW_GAME")
   await sio.emit('new_game', data, room=sid)
-  # ROOMS_GAMES[room].playGame()
-  # print("ROOMS_GAMES:")
-  # print(ROOMS_GAMES.items())
-  # print("ROOMS_GAMES Players List:")
-  # print(ROOMS_GAMES['1'].players)
-  # print("ROOMS_GAMES Round")
-  # print(ROOMS_GAMES['1'].game_round)
-  # print("ROOMS_GAMES Round Players_drawn")
-  # print(ROOMS_GAMES['1'].game_round.players_drawn)
-  # emit("new_game", data, room=room)
 
 """
 handler for when a user starts a game
@@ -135,7 +124,7 @@ async def on_start(sid, data):
   """Start a created game"""
   print("START SOCKET")
   print("data: " + str(data))
-  room = data["roomId"]  # TODO: How to generate random room ID
+  room = data["roomId"]
   await ROOMS_GAMES[room].playGame()
 
 """
@@ -149,17 +138,13 @@ async def on_join(sid, data):
   room = data['roomId']
   username = data['username']
   sio.enter_room(sid, room)
-
-  # may not be necessary
-  # ROOMS[room].append(request.sid)
   
   ROOMS_GAMES[room].addPlayer(sid, username)
-  # print("ROOMS:")
-  # print(ROOMS.items())
+
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
-  print(ROOMS_GAMES['1'].players)
+  print(ROOMS_GAMES[room].players)
   await sio.emit('new_player_join', data, room=room)
   # emit('new_player_join', {'roomId': room}, room=room)
 
@@ -169,20 +154,14 @@ handler for when a user leaves the room they're in
 @sio.on('leave')
 async def on_leave(sid, data):
   print('leaving... SOCKET')
-  username = data['username']
   room = data['roomId']
   # ROOMS.pop(room)
-
   ROOMS_GAMES[room].removePlayer(sid)
   sio.leave_room(sid, room)
   await sio.emit('player_leave', data, room=room)
-  # send(username + ' has left the room.', room=room)
 
 @sio.on("receive_word")
 def on_receive_word(sid, data):
-  # username = data['username']
-
-  # we will need these:
   room = data['roomId']
   word = data['word']
   print("RECEIVED_WORD SOCKET: ", word)

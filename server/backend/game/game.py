@@ -54,7 +54,7 @@ class Game:
       if human in self.game_round.players_drawn:
         self.game_round.players_drawn.pop(human)
       if human in self.game_round.players_copy:
-        self.players_copy.pop(human)
+        self.game_round.players_copy.pop(human)
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))

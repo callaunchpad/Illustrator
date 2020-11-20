@@ -20,7 +20,8 @@ export default function Canvas(props) {
   const [canDraw, setCanDraw] = React.useState(true);
   // text for the controlled form component. Contains the player's guess for the word
   const [guessText, setGuessText] = React.useState('');
-  const { socket } = props;
+
+  const { socket, roomId } = props;
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
@@ -81,7 +82,7 @@ export default function Canvas(props) {
       color,
       penLifted,
       strokeWidth,
-      roomId: '1'
+      roomId,
     }
     socket.emit('send_draw', data)
   }
@@ -98,7 +99,7 @@ export default function Canvas(props) {
   const guessWord = (e) => {
     e.preventDefault();
     console.log('guessed: ', guessText)
-    const data = {guessText, roomId: 1}
+    const data = {guessText, roomId}
     socket.emit('send_guess', data)
     console.log('emitted: ', guessText)
     // emit a websocket event
@@ -139,7 +140,7 @@ export default function Canvas(props) {
         </label>
         <input type="submit" value="Submit" />
       </form> */}
-      <button onClick={() => socket.emit('test_sketch_rnn', {roomId: 1})}>Test Sketch Rnn</button>
+      <button onClick={() => socket.emit('test_sketch_rnn', {roomId})}>Test Sketch Rnn</button>
       {/* <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button> */}
     </Container>
   )
