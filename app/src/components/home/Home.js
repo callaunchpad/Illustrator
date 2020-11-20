@@ -15,14 +15,15 @@ function Home(props) {
   React.useEffect(() => {
     console.log("home use effect");
   }, []);
-  const handleSubmit = async (e) => {
+
+  const handleCreate = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post(endpoints.game, {
         username,
         roomId,
       });
-      if (res.data.success) {
+      if (res.data.create) {
         props.history.push({
           pathname: '/game',
           // search: '?query=abc',
@@ -31,7 +32,30 @@ function Home(props) {
           },
         });
       } else {
-        alert(`could not join the room with room id: ${roomId}`);
+        alert(`Please make a username!`);
+      }
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(endpoints.game, {
+        username,
+        roomId,
+      });
+      if (res.data.join) {
+        props.history.push({
+          pathname: '/game',
+          // search: '?query=abc',
+          state: {
+            roomId,
+          },
+        });
+      } else {
+        alert(`Could not join the room with room id: ${roomId}`);
       }
     } catch(e) {
       console.log(e);
@@ -43,25 +67,39 @@ function Home(props) {
       <Form>
         <Form.Group controlId="formName">
           {/* <Form.Label style={{color: 'white'}}>Name</Form.Label> */}
-          <Form.Control
-            type="text"
-            placeholder="Enter name..."
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
+          <Form.Row>
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Enter name..."
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </Col>
+            <Col>
+              <Button variant="primary" onClick={handleCreate}>
+                Create Room
+              </Button>
+            </Col>
+          </Form.Row>
         </Form.Group>
 
         <Form.Group controlId="formRoomId">
           {/* <Form.Label style={{color: 'white'}}>Room Id</Form.Label> */}
-          <Form.Control
-            type="text"
-            placeholder="Room id..."
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-          />
+          <Form.Row>
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Room id..."
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+              />
+            </Col>
+          </Form.Row>
+          
         </Form.Group>
-        <Button variant="primary" onClick={handleSubmit}>
-          Submit
+        <Button variant="primary" onClick={handleJoin}>
+          Join Room
         </Button>
       </Form>
       {/* <form className='form' onSubmit={handleSubmit}>

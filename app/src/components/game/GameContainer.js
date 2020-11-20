@@ -60,22 +60,35 @@ function GameContainer(props) {
   const globalContext = React.useContext(GlobalContext);
   // console.log(props.location.state.roomId);
 
-  // redirect to home page is user or room id does not exist
+  // redirect to home page if user or room id does not exist
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
+
   const { username, roomId } = globalContext;
-  if (username === undefined || username.length === 0 || roomId === undefined || roomId.length === 0) {
+  if (username === undefined || username.length === 0) {
+    console.log("No username");
     props.history.push("/");
   }
 
   React.useEffect(() => {
     setGameStart(true);
     socket.on('connect', function() {
-      console.log(`Websocket connected! Now joining room: ${roomId}`);
-      socket.emit('join', {
-        username,
-        roomId,
-      });
+      if (roomId === undefined || roomId.length === 0) {
+        let room = Math.random().toString(36).substring(7);
+        console.log(`Generating room id and creating game...`);
+        console.log(`room id is ${room}`);
+        socket.emit('create_room', {
+          username,
+          'roomId': room,
+        });
+      } else {
+        console.log(`Websocket connected! Now joining room: ${roomId}`);
+        socket.emit('join', {
+          username,
+          roomId,
+        });
+      }
+      
     });
   
     socket.on('disconnect', function() {

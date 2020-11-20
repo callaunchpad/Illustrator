@@ -81,8 +81,8 @@ async def on_send_guess(sid, data):
 handler for when a user creates a game
   data: username
 """
-@sio.on('create_game')
-async def on_create_game(sid, data):
+@sio.on('create_room')
+async def on_create_room(sid, data):
   """Create a game lobby"""
   print("CREATING GAME SOCKET")
   print('data: ' + str(data))
@@ -91,14 +91,14 @@ async def on_create_game(sid, data):
   sio.enter_room(sid, room)
   # may not be necessary
   # ROOMS[room].append(request.sid)
-  ROOMS_GAMES[room] = Game(room, sio, data["num_rounds"], players=[sid]) # need num_rounds from client
+  ROOMS_GAMES[room] = Game(room, sio, 3, players=[sid]) # need num_rounds from client? create game interface
   # print("ROOMS:")
   # print(ROOMS.items())
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES[1].players)
-  await sio.emit('join_room_msg', data, room=room)
+  await sio.emit('new_player_join', data, room=room)
   # emit("new_game", data, room=room)
   
 """
