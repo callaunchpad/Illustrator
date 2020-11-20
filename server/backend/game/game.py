@@ -46,6 +46,15 @@ class Game:
     self.players.append(Human(username, id))
     self.leaderboard[username] = 0
     # self.leaderboard[id] = 0
+  
+  def removePlayer(self, id):
+    for human in self.players:
+      if human.sid == id:
+        self.players.pop(human)
+      if human in self.game_round.players_drawn:
+        self.game_round.players_drawn.pop(human)
+      if human in self.game_round.players_copy:
+        self.players_copy.pop(human)
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
@@ -89,12 +98,14 @@ class Round:
     self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
     if (isinstance(self.drawing.artist, Bot)):
-      await self.drawing.draw()
+      await asyncio.wait([self.drawing.draw(), self.drawing.revealLetters()])
     else:
       await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess(), self.drawing.revealLetters()])
     self.players_drawn.append(player)
 
   def choosePlayer(self):
+    print("PLAYERSCOPY")
+    print(self.players_copy)
     player = self.players_copy[0]   # choose player who hasn't drawn
     self.players_copy.remove(player)  # delete from possible players to draw
     return player    # return player object
@@ -172,21 +183,25 @@ class Drawing:
 
   def checkGuess(self, player_instance, username, guess):
     print("THE GUESS IS " + guess + " AND THE CORRECT ONE IS " + self.choice)
-    if guess == self.choice and (player_instance not in self.correct_players):
+    if (player_instance == self.artist.sid):
+      return 3
+    if (player_instance in self.correct_players):
+      return 4
+    if guess == self.choice and (player_instance != self.artist.sid) and (player_instance not in self.correct_players):
       player = None
       for p in self.game_round.players_copy:
         if p.username == username:
           player = p
       if player == None:
         print("couldn't find player with username: ", username)
-      self.correct_players.append(player)
+      self.correct_players.append(player_instance)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
       self.game_round.game.leaderboard[username] += self.time_limit - self.timer.current_time()
-      return True
+      return 1
     else:
       self.guesses.append(guess)
-      return False
+      return 2
 
   def add_stroke(self, stroke):
     self.stroke_list.append(stroke)
@@ -200,9 +215,9 @@ class Drawing:
       if isinstance(bot_instance, Bot):
         bot_guess = await bot_instance.classify(self.stroke_list)
         # TODO: maybe streamline this better??
-        correct = self.checkGuess(bot_instance, 'bot', bot_guess)
+        correct = self.checkGuess(bot_instance.sid, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
-        if correct:
+        if correct == 1:
           print("CORRECT GUESS!")
           await sio.emit('receive_answer', data, room=roomId)
         else:

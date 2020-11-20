@@ -98,6 +98,13 @@ function GameContainer(props) {
     socket.on('receive_guess', function (data) {
       setMessages(messagesRef.current.concat(`${data.username}: ${data.guess}`));
     });
+
+    socket.on('receive_own_guess', function (data) {
+      setMessages(messagesRef.current.concat("YOU CANNOT GUESS DURING YOUR TURN!"));
+    });
+    socket.on('already_guessed', function (data) {
+      setMessages(messagesRef.current.concat("YOU ALREADY GOT POINTS!"));
+    });
   
     socket.on('receive_answer', (data) => {
       setAnswered([...answeredRef.current, {username: data.username}]);
@@ -117,6 +124,8 @@ function GameContainer(props) {
 
     socket.on('new_game', function (data) {
       // setModalToDisplay(GAME_START)
+      console.log("starting actual game: ");
+      console.log(data);
       socket.emit('start', {
         username,
         roomId,

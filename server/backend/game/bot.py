@@ -16,6 +16,7 @@ class Bot(Player):
     self.model = model
     self.deck  = deck # list of words to choose from
     self.rankings = deck # words ranked by the model's output probabilities
+    self.sid = 0
 
   async def classify(self, strokes):
     print('classifying sketch')
