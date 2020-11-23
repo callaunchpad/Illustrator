@@ -13,9 +13,8 @@ import asyncio
 
 class Game:
   def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","broccoli","baseball"]):
-    self.players = players
     self.bot = Bot('ResNet50', deck)
-    self.players.append(self.bot)
+    self.players = players + [self.bot]
     self.state = GameState()
     self.deck = deck
     self.leaderboard = {'bot': 0}
@@ -62,12 +61,8 @@ class Game:
     await self.game_round.runRound()
     self.curr_round += 1
   
-  def showLeaderboard(self):
-    # TODO display leaderboard via socket
-
-    # EVENTUALLY ADD 
-    # await self.socketio_instance.emit("show_leaderboard", {"leaderboard": self.leaderboard}, room=self.id)
-    None
+  async def showLeaderboard(self):
+    await self.socketio_instance.emit("show_leaderboard", {"leaderboard": self.leaderboard}, room=self.id)
 
 """
 Class for defining a game state
@@ -168,10 +163,8 @@ class Drawing:
     model_outputs = []
     if isinstance(self.artist, Bot):
       model_outputs = self.artist.generate(self.choice)
-
+    
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
-      # self.showLeaderboard()
-
       if len(model_outputs) > 0:
         await sio.emit("receive_draw", model_outputs.pop(0), room=roomId)
         await sio.sleep(.05)
@@ -207,6 +200,7 @@ class Drawing:
     self.stroke_list.append(stroke)
 
   async def bot_guess(self):
+    bot_guesses = []
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       roomId = self.game_round.game.id
       sio    = self.game_round.game.socketio_instance
@@ -214,15 +208,17 @@ class Drawing:
       bot_instance = self.game_round.game.bot
       if isinstance(bot_instance, Bot):
         bot_guess = await bot_instance.classify(self.stroke_list)
-        # TODO: maybe streamline this better??
         correct = self.checkGuess(bot_instance.sid, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
         if correct == 1:
           print("CORRECT GUESS!")
           await sio.emit('receive_answer', data, room=roomId)
+          break
         else:
           print("INCORRECT GUESS!")
-          await sio.emit('receive_guess', data, room=roomId)
+          if bot_guess not in bot_guesses:
+            await sio.emit('receive_guess', data, room=roomId)
+            bot_guesses.append(bot_guess)
 
   async def revealLetters(self):
     len_choice = len(self.choice)
