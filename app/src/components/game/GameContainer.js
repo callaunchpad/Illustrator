@@ -143,6 +143,10 @@ function GameContainer(props) {
       setModalToDisplay(GAME_END);
     });
 
+    socket.on('not_choose_word', async (data) => {
+      console.log('Not choosing word', data.player_username);
+    });
+    
     socket.on('choose_word', async (data) => {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
