@@ -65,6 +65,8 @@ export default function GamePlay(props) {
           <Canvas
             socket={props.socket}
             roomId={props.roomId}
+            drawer={props.drawer}
+            username={username}
           />
         </Col>
         <Col xs={4} style={{backgroundColor: 'white'}}>

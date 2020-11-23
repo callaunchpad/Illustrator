@@ -44,6 +44,7 @@ function GameContainer(props) {
   const [chosenWord, setChosenWord] = React.useState('');
   const [revealLetter, setRevealLetter] = React.useState([]);
   const [roomIdState, setRoomIdState] = React.useState('');
+  const [drawer, setDrawer] = React.useState('');
 
   const messagesRef = React.useRef(messages);
   const playersRef  = React.useRef(players);
@@ -146,6 +147,7 @@ function GameContainer(props) {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
       setModalToDisplay(CHOOSE_WORD);
+      setDrawer(data.username);
       // const word = await chooseWord();
       // console.log("choose_word: ", word);
       // return { word, }
@@ -214,6 +216,7 @@ function GameContainer(props) {
         chosenWord={chosenWord}
         revealLetter={revealLetter}
         roomId={roomIdState}
+        drawer={drawer}
       />
     );
   }

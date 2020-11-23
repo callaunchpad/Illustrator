@@ -20,8 +20,9 @@ export default function Canvas(props) {
   const [canDraw, setCanDraw] = React.useState(true);
   // text for the controlled form component. Contains the player's guess for the word
   const [guessText, setGuessText] = React.useState('');
+  const [personDrawing, setPersonDrawing] = React.useState('');
 
-  const { socket, roomId } = props;
+  const { socket, roomId, drawer,username} = props;
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
@@ -34,6 +35,11 @@ export default function Canvas(props) {
       p5.strokeWeight(data.strokeWidth)
       p5.line(data.x1, data.y1, data.x2, data.y2)
     });
+    // socket.on('receive_drawer', data => {
+    //   p5.stroke(data.color)
+    //   p5.strokeWeight(data.strokeWidth)
+    //   p5.line(data.x1, data.y1, data.x2, data.y2)
+    // });
 
     socket.on('clear_canvas', data => {
       console.log('clearing canvas...');
@@ -48,7 +54,7 @@ export default function Canvas(props) {
   // in the same room
   const mouseDragged = (p5) => {
     // only allow user to draw if it is their turn
-    if (!canDraw) {
+    if (username != drawer) {
       return;
     }
     if (p5.mouseX > CANVAS_WIDTH || p5.mouseY > CANVAS_HEIGHT || p5.mouseX < 0 || p5.mouseY < 0 ) {
@@ -85,6 +91,8 @@ export default function Canvas(props) {
       roomId,
     }
     socket.emit('send_draw', data)
+    console.log("data")
+    console.log(data)
   }
 
   // this is constantly run

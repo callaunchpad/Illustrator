@@ -123,7 +123,7 @@ class Round:
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
     print("CHOOSING WORD")
-    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player.sid}, room=player.sid)
+    await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player.sid, 'username':player.username}, room=player.sid)
     seconds_slept = 0
     # poll every second
     while (len(self.choice) == 0 and seconds_slept < 10):
