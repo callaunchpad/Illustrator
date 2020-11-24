@@ -66,7 +66,7 @@ function GameContainer(props) {
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
 
-  let newRoomId = '';
+  var newRoomId = '';
   const { username, roomId } = globalContext;
   if (username === undefined || username.length === 0) {
     console.log("No username");
@@ -79,7 +79,8 @@ function GameContainer(props) {
         let room = Math.random().toString(36).substring(7);
         console.log(`Generating room id and creating game...`);
         console.log(`room id is ${room}`);
-        newRoomId = room;
+        // newRoomId = room;
+        newRoomId = room
         setRoomIdState(room);
         socket.emit('create_room', {
           username,
@@ -151,10 +152,13 @@ function GameContainer(props) {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
       setModalToDisplay(CHOOSE_WORD);
-      setDrawer(data.username);
       // const word = await chooseWord();
       // console.log("choose_word: ", word);
       // return { word, }
+    });
+
+    socket.on('set_drawer', async (data) => {
+      setDrawer(data.username);
     });
 
     socket.on('close_word', function(data) {
@@ -181,7 +185,7 @@ function GameContainer(props) {
       console.log("disconnecting...");
       socket.emit('leave', {
         username,
-        'roomId': newRoomId,
+        'roomId': roomIdState,
       });
       socket.disconnect();
     };
@@ -201,7 +205,7 @@ function GameContainer(props) {
     console.log("running on choose word: ", word);
     socket.emit("receive_word", {
       username,
-      'roomId': newRoomId,
+      'roomId': roomIdState,
       word,
     });
     setChosenWord(word);
@@ -221,6 +225,7 @@ function GameContainer(props) {
         revealLetter={revealLetter}
         roomId={roomIdState}
         drawer={drawer}
+        username={username}
       />
     );
   }
