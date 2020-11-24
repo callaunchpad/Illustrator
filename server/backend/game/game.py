@@ -23,6 +23,7 @@ class Game:
     self.id = id
     self.game_round = None
     self.socketio_instance = socketio_instance
+    # self.roomId = roomId
 
   async def playGame(self):
     print("STARTING GAME...")
@@ -37,6 +38,8 @@ class Game:
     self.showLeaderboard()
     self.state.status = 'ended'
     await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
+    self.socketio_instance.sleep(7)
+    await self.game.socketio_instance.emit("close_word", room=self.id)
     self.curr_round = 1
     for elem in self.leaderboard.keys():
       self.leaderboard[elem] = 0
@@ -122,6 +125,8 @@ class Round:
     # ids = [elem.id for elem in player_list]
     # await self.game.socketio_instance.emit("not_choose_word", {'player_username':player.username}, room=ids)
     await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player.sid, 'username':player.username}, room=player.sid)
+    await self.game.socketio_instance.emit("set_drawer", {'username':player.username}, room=self.game.id)
+    print("Sending to " + str(self.game.id))
     seconds_slept = 0
     # poll every second
     while (len(self.choice) == 0 and seconds_slept < 10):
