@@ -4,4 +4,4 @@
 **/__pycache__
 **/datasets/
 **/training_logs
-classification/45.h5
+*.h5
