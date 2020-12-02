@@ -38,8 +38,8 @@ class Game:
     self.showLeaderboard()
     self.state.status = 'ended'
     await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
-    self.socketio_instance.sleep(7)
-    await self.game.socketio_instance.emit("close_word", room=self.id)
+    await self.socketio_instance.sleep(7)
+    await self.socketio_instance.emit("close_word", room=self.id)
     self.curr_round = 1
     for elem in self.leaderboard.keys():
       self.leaderboard[elem] = 0
