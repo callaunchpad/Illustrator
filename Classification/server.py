@@ -14,8 +14,11 @@ async def classify(req):
   body = await req.json()
   word = body.get('word')
   strokes = body.get('strokes')
-  pred = run.classify(strokes)
-  response = {'pred': pred}
+  # pred = run.classify(strokes)
+  # response = {'pred': pred}
+  top5 = run.classify(strokes)
+  print("top 5: ", top5)
+  response = {'pred': top5}
   return web.json_response(response)
 
 app = web.Application()

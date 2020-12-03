@@ -51,6 +51,42 @@ def generate_strokes_dictionary(strokes,factor=0.2):
     res.append({'x1': curr_x, 'y1': curr_y, 'x2': last_x, 'y2': last_y, 'color': 'rgba(100%,0%,100%,0.5)', 'penLifted': last_pen_lift, 'strokeWidth': 4, 'roomId': '1'})
     return res
 
+def uncond_get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):
+    def load_model_compatible(model_dir):
+        """Loads model for inference mode, used in jupyter notebook."""
+        # modified https://github.com/tensorflow/magenta/blob/master/magenta/models/sketch_rnn/sketch_rnn_train.py
+        # to work with depreciated tf.HParams functionality
+        model_params = sketch_rnn_model.get_default_hparams()
+        with tf.gfile.Open(os.path.join(model_dir, 'model_config.json'), 'r') as f:
+            data = json.load(f)
+        fix_list = ['conditional', 'is_training', 'use_input_dropout', 'use_output_dropout', 'use_recurrent_dropout']
+        for fix in fix_list:
+            data[fix] = (data[fix] == 1)
+        model_params.parse_json(json.dumps(data))
+
+        model_params.batch_size = 1  # only sample one at a time
+        eval_model_params = sketch_rnn_model.copy_hparams(model_params)
+        eval_model_params.use_input_dropout = 0
+        eval_model_params.use_recurrent_dropout = 0
+        eval_model_params.use_output_dropout = 0
+        eval_model_params.is_training = 0
+        sample_model_params = sketch_rnn_model.copy_hparams(eval_model_params)
+        sample_model_params.max_seq_len = 1  # sample one point at a time
+        return [model_params, eval_model_params, sample_model_params]
+    def uncond_decode(temperature=0.1, factor=0.2):
+        sample_strokes, m = sample(sess, sample_model, seq_len=eval_model.hps.max_seq_len, temperature=temperature, z=z)
+        strokes = to_normal_strokes(sample_strokes)
+        return strokes
+    [hps_model, eval_hps_model, sample_hps_model] = load_model_compatible(model_dir)
+    reset_graph()
+    model = Model(hps_model)
+    eval_model = Model(eval_hps_model, reuse=True)
+    sample_model = Model(sample_hps_model, reuse=True)
+    sess = tf.InteractiveSession()
+    sess.run(tf.global_variables_initializer())
+    # loads the weights from checkpoint into our model
+    load_checkpoint(sess, model_dir)
+
 
 def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):
     """
@@ -63,20 +99,19 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
       CSUA Latte's dataset directory: /dataset/sketch-rnn, see below
     * draw_mode: should I draw a copy of the sketch to the 'output/' folder? (default: True)
     """
+    # determine if we wanna use conditional or unconditional model
+    class_name = 'cond_{}'.format(class_name)
 
     # Data directory on CSUA latte for grabbing datasets
-    data_dir  = '/datasets/sketch-rnn'
+    data_dir = '/datasets/sketch-rnn'
 
     # Checkpoint file name (assumed in checkpoints folder within exp_dir)
     weights_fname = 'weights.hdf5'
     # Path to the experiment directory that was created during training
-    class_dir = path.join(model_dir, 'experiments/{}'.format(class_name))
+    class_dir = path.join(model_dir, 'models/{}'.format(class_name))
 
     if not path.exists(class_dir):
         raise ValueError("class name does not exist.")
-    # model_folder = path.join(model_dir, class_name)
-    # if not os.path.exists(model_folder):
-    #   raise ValueError("class name does not exist.")
 
     config_path = path.join(class_dir, 'logs', 'model_config.json')
     with open(config_path, 'r') as f:
@@ -104,7 +139,6 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
         sample_strokes, m = sample(seq2seq, seq_len=model_params.max_seq_len, temperature=temperature, z=z)
         strokes = to_normal_strokes(sample_strokes)
         return strokes
-
 
     if use_dataset:
         # using dataset, will load dataset

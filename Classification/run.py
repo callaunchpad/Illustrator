@@ -1,7 +1,5 @@
 import os
 from os import path
-import os
-from os import path
 import sys
 cwd = os.path.dirname(os.path.realpath(__file__))
 
@@ -25,7 +23,7 @@ paths = np.array(paths)
 names = [path.split('/')[-1].replace('.npz','') for path in paths]
 
 # load model
-model = keras.models.load_model(path.join(cwd, '45.h5'))
+model = keras.models.load_model(path.join(cwd, '12.h5'))
 def read(path):
 	'''
 	Reads in time series given the path to the time series txt data
@@ -74,7 +72,10 @@ def pred(img, classes):
   '''
   Predict the class with the highest probability
   '''
-  res = classes[np.argmax(model.predict(np.array([img])))]
+  predictions = model.predict(np.array([img]))[0]
+  print("model predictions: ", predictions)
+  res = predictions.argsort()[-5:][::-1] # take top 5 predictions
+  # res = classes[np.argmax(model.predict(np.array([img])))]
   return res
       
 def classify(series):
@@ -85,4 +86,4 @@ def classify(series):
   print("got image, starting prediction")
   res = pred(img, names)
   print("res is: ", res)
-  return res
+  return [int(idx) for idx in res] # numpy arrays and dtypes are not json serializable

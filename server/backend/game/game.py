@@ -2,7 +2,6 @@
 Classes for defining a game instance
 """
 from enum import Enum
-# from .game_round import Round, Drawing
 from .utils import Timer
 import eventlet
 import numpy as np
@@ -11,8 +10,15 @@ from .bot import Bot
 from .. import socketio
 import asyncio
 
+# read in the deck of possible words from disk
+from os import path
+import csv
+cwd = path.dirname(path.realpath(__file__))
+words = open(path.join(cwd, 'deck.csv'), 'r')
+deck = [row[0] for row in csv.reader(words)]
+
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=["apple","broccoli","baseball"]):
+  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=deck):
     self.bot = Bot('ResNet50', deck)
     self.players = players + [self.bot]
     self.state = GameState()

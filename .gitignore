@@ -3,5 +3,9 @@
 **/class_env
 **/__pycache__
 **/datasets/
+server/backend/sketch_rnn/models
+server/backend/sketch_rnn/old_models
 **/training_logs
 *.h5
+*_env
+*.jpg
