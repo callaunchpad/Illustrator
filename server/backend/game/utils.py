@@ -8,12 +8,18 @@ class Timer:
     self.seconds = seconds
     self.start_time = time.perf_counter()
   
+  """
+  checks to see if time is up or not
+  """
   def check(self):
     curr_time = time.perf_counter()
     if curr_time - self.start_time <= self.seconds:
       return True
     return False
 
+  """
+  returns the amount of time passed since the timer started
+  """
   def current_time(self):
     curr_time = time.perf_counter()
     return curr_time - self.start_time

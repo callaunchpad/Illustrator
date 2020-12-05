@@ -18,7 +18,7 @@ words = open(path.join(cwd, 'deck.csv'), 'r')
 deck = [row[0] for row in csv.reader(words)]
 
 class Game:
-  def __init__(self, id, socketio_instance, num_rounds=3, players=[], deck=deck):
+  def __init__(self, room_id, socketio_instance, num_rounds=3, players=[], deck=deck):
     self.bot = Bot('ResNet50', deck)
     self.players = players + [self.bot]
     self.state = GameState()
@@ -26,14 +26,13 @@ class Game:
     self.leaderboard = {'bot': 0}
     self.num_rounds = num_rounds   # initialized by game creator
     self.curr_round = 1
-    self.id = id
+    self.id = room_id
     self.game_round = None
     self.socketio_instance = socketio_instance
-    # self.roomId = roomId
 
   async def playGame(self):
     print("STARTING GAME...")
-    self.state.status="started"
+    self.state.status = "started"
     while self.curr_round != self.num_rounds:
       print('curr_round is: ', self.curr_round)
       await self.playRound()
@@ -53,7 +52,6 @@ class Game:
   def addPlayer(self, id, username):
     self.players.append(Human(username, id))
     self.leaderboard[username] = 0
-    # self.leaderboard[id] = 0
   
   def removePlayer(self, id):
     for human in self.players:
@@ -95,9 +93,7 @@ class Round:
       await self.game.socketio_instance.emit('clear_canvas', {}, roomId=self.game.id)
   
   async def next_drawing(self, player):
-    # choice = await self.chooseDrawing(player)
     await self.chooseDrawing(player)
-    # TODO: emit the chosen drawing to all users in the same room
     print("THE CHOICE IS...." + self.choice)
     self.drawing = Drawing(player, self, self.choice, 30)
     print("WAITING FOR DRAWING, you have 30 seconds")
@@ -123,13 +119,11 @@ class Round:
     if isinstance(player, Bot):
       self.choice = np.random.choice(options)
       print("Bot chose: ", self.choice)
+      # await self.game.socketio_instance.emit("start_round", {}, room=self.game.id)
       return
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
     print("CHOOSING WORD")
-    # player_list = [x for x in self.game.players if x != player]
-    # ids = [elem.id for elem in player_list]
-    # await self.game.socketio_instance.emit("not_choose_word", {'player_username':player.username}, room=ids)
     await self.game.socketio_instance.emit("choose_word", {'options': list(options), 'player': player.sid, 'username':player.username}, room=player.sid)
     await self.game.socketio_instance.emit("set_drawer", {'username':player.username}, room=self.game.id)
     print("Sending to " + str(self.game.id))
@@ -142,7 +136,7 @@ class Round:
       self.choice = np.random.choice(options)
       await self.game.socketio_instance.emit("close_word", room=player.sid)
     print("word is: ", self.choice)
-    # return self.choice
+    # await self.game.socketio_instance.emit("start_round", {'word': self.choice}, room=self.game.id)
 
 """
 Class for defining a drawing
@@ -164,28 +158,34 @@ class Drawing:
     # Wait for 3 seconds before beginning the drawing
     # Wait for x seconds as people guess, will later implement lowering / canceling 
     # clock as players get word and all players guess
-  
-
     # if the artist is a bot
     roomId = self.game_round.game.id
-    sio    = self.game_round.game.socketio_instance
+    sio = self.game_round.game.socketio_instance
 
-    data =  {"roomId": roomId, "word": self.choice, "show": []}
+    data = {"roomId": roomId, "word": self.choice, "show": []}
     await sio.emit('establish_word', data, room=roomId)
     await sio.emit('reveal_letter', data, room=roomId)
 
     model_outputs = []
+    NUM_SKETCHES =  3
+    # maybe make this generate method async
     if isinstance(self.artist, Bot):
-      model_outputs = self.artist.generate(self.choice)
-    
+      # generate NUM_SKETCHES different sketches
+      for _ in range(NUM_SKETCHES):
+        model_outputs.append(self.artist.generate(self.choice))
+    sketch_idx = 0
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
-      if len(model_outputs) > 0:
-        await sio.emit("receive_draw", model_outputs.pop(0), room=roomId)
+      if isinstance(self.artist, Bot) and len(model_outputs[sketch_idx]) > 0:
+        await sio.emit("receive_draw", model_outputs[sketch_idx].pop(0), room=roomId)
         await sio.sleep(.05)
-      else:
+      elif isinstance(self.artist, Bot):
+        # if more than a of the time has passed since the last drawing was drawn, then draw another one
+        if sketch_idx < NUM_SKETCHES - 1 and self.timer.current_time() > (sketch_idx + 1) * self.timer.seconds / NUM_SKETCHES:
+          sketch_idx += 1
+          await sio.emit('clear_canvas', {}, roomId=self.game_round.game.id)
         await sio.sleep(0)
-      # TODO start_draw stuff with socket responses
-    
+      else: # this is the case where the artist is not a Bot. Just sleep over and over again
+        await sio.sleep(0)
     await sio.emit("show_leaderboard", {"leaderboard": self.game_round.game.leaderboard}, room=self.game_round.game.id)
 
   def checkGuess(self, player_instance, username, guess):
@@ -212,6 +212,9 @@ class Drawing:
 
   def add_stroke(self, stroke):
     self.stroke_list.append(stroke)
+  
+  def clear_strokes(self):
+    self.stroke_list = []
 
   async def bot_guess(self):
     bot_guesses = []
@@ -249,8 +252,6 @@ class Drawing:
       data = {'roomId': roomId, 'show': self.letters_list}
 
       self.shown_letters = self.shown_letters[self.shown_letters != show]
-      print("REVEALING DATA:")
-      print(data["show"])
       await sio.emit("reveal_letter", data, room=roomId)
       await sio.sleep(delay)
 

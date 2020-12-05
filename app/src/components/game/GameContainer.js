@@ -6,14 +6,12 @@
  */
 
 import React from 'react'
-// import Modal from '@material-ui/core/Modal';
 import { withRouter } from 'react-router-dom';
 import socketIOClient from "socket.io-client";
 import { Container, Row, Col, Form, Button, Modal } from 'react-bootstrap';
 
 import ENDPOINTS from '../../endpoints';
 import End from './screens/End';
-// import socket from '../../socket';
 import Lobby from './Lobby';
 import TimesUp from './screens/TimesUp';
 import StartGame from './screens/StartGame';
@@ -26,13 +24,11 @@ const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
 const NO_MODAL  = 'No modal';
 const GAME_START  = 'game_start';
-const CHOOSE_WORD = "Pick a word!"
-
-// let wordResolve;
+const CHOOSE_WORD = "Pick a word!";
 
 function GameContainer(props) {
   const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
-  const [gameStart, setGameStart] = React.useState(false);
+  const [gameStarted, setGameStarted] = React.useState(false);
   const [modalToDisplay, setModalToDisplay] = React.useState(NO_MODAL);
 
   const [messages, setMessages] = React.useState([]); // list of strings that are displayed in the canvas chat
@@ -45,6 +41,7 @@ function GameContainer(props) {
   const [revealLetter, setRevealLetter] = React.useState([]);
   const [roomIdState, setRoomIdState] = React.useState('');
   const [drawer, setDrawer] = React.useState('');
+  const [isTimerStarted, setIsTimerStarted] = React.useState(false); // toggle to start/stop timer
 
   const messagesRef = React.useRef(messages);
   const playersRef  = React.useRef(players);
@@ -60,8 +57,6 @@ function GameContainer(props) {
   }, [messages, players, guesses, answered, leaderboard]);
 
   const globalContext = React.useContext(GlobalContext);
-  // console.log(props.location.state.roomId);
-
   // redirect to home page if user or room id does not exist
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
@@ -79,7 +74,6 @@ function GameContainer(props) {
         let room = Math.random().toString(36).substring(7);
         console.log(`Generating room id and creating game...`);
         console.log(`room id is ${room}`);
-        // newRoomId = room;
         newRoomId = room
         setRoomIdState(room);
         socket.emit('create_room', {
@@ -133,6 +127,7 @@ function GameContainer(props) {
       // setModalToDisplay(GAME_START)
       console.log("starting actual game: ");
       console.log(data);
+      setGameStarted(true);
       socket.emit('start', {
         username,
         'roomId': newRoomId,
@@ -141,6 +136,7 @@ function GameContainer(props) {
 
     socket.on('end_game', function (data) {
       console.log("end game client");
+      setGameStarted(false);
       setModalToDisplay(GAME_END);
     });
 
@@ -152,9 +148,6 @@ function GameContainer(props) {
       console.log('Choosing Word', data.options);
       setWordChoices(data.options);
       setModalToDisplay(CHOOSE_WORD);
-      // const word = await chooseWord();
-      // console.log("choose_word: ", word);
-      // return { word, }
     });
 
     socket.on('set_drawer', async (data) => {
@@ -165,19 +158,23 @@ function GameContainer(props) {
       setModalToDisplay(NO_MODAL);
     });
 
+    // the round officialy ends when this is sent
     socket.on('show_leaderboard', function (data) {
       console.log('leaderboard: ', data);
+      setIsTimerStarted(false);
       setLeaderboard(data.leaderboard);
     })
     
+    // this is when the round officially starts with the drawing
     socket.on('establish_word', function (data) {
-      setChosenWord(data.word)
+      setChosenWord(data.word);
+      setIsTimerStarted(true);
       console.log('establish word: ', data.word);
     })
 
     socket.on('reveal_letter', function (data) {
-      setRevealLetter(data.show)
-      console.log('reveal letter: ', data.show);
+      setRevealLetter(data.show);
+      // console.log('reveal letter: ', data.show);
     })
 
     // disconnect the socket when component unmounts
@@ -190,16 +187,6 @@ function GameContainer(props) {
       socket.disconnect();
     };
   }, []);
-  // returns a promise that resolves once the onChooseWord button handler runs
-  // this promise will therefore resolve only when the user has chosen a word/times out
-  // const chooseWord = async (choices) => {
-  //   console.log("running chooseword...");
-  //   setModalToDisplay(CHOOSE_WORD);
-  //   const p = new Promise((resolve, reject) => {
-  //     wordResolve = resolve;
-  //   });
-  //   return p;
-  // }
 
   const onChooseWord = (word) => {
     console.log("running on choose word: ", word);
@@ -209,7 +196,6 @@ function GameContainer(props) {
       word,
     });
     setChosenWord(word);
-    // wordResolve(word);
     setModalToDisplay(NO_MODAL);
   }
 
@@ -226,12 +212,13 @@ function GameContainer(props) {
         roomId={roomIdState}
         drawer={drawer}
         username={username}
+        isTimerStarted={isTimerStarted}
       />
     );
   }
 
   const displayModalContent = () => {
-    console.log(modalToDisplay);
+    // console.log(modalToDisplay);
     switch(modalToDisplay) {
       case NO_MODAL:
         return null;

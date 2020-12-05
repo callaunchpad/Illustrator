@@ -100,7 +100,7 @@ def get_sketch_dictionary(class_name, use_dataset=False):
     strokes_dictionary = generate_strokes_dictionary(strokes,factor=0.05)
     return strokes_dictionary
 
-print(get_sketch_dictionary("apple", use_dataset=False))
+# print(get_sketch_dictionary("apple", use_dataset=False))
 # def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):
 #     """
 #     return sketch dictionary given a class name

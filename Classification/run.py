@@ -72,18 +72,16 @@ def pred(img, classes):
   '''
   Predict the class with the highest probability
   '''
+  top_n = 10
   predictions = model.predict(np.array([img]))[0]
   print("model predictions: ", predictions)
-  res = predictions.argsort()[-5:][::-1] # take top 5 predictions
+  res = predictions.argsort()[-1*top_n:][::-1] # take top n predictions
   # res = classes[np.argmax(model.predict(np.array([img])))]
   return res
       
 def classify(series):
-  # series = read(path.join(cwd, 'airplane.txt'))
   xy_img = convert(series)
-  print('converted series')
   img = get_img(xy_img)
-  print("got image, starting prediction")
   res = pred(img, names)
   print("res is: ", res)
   return [int(idx) for idx in res] # numpy arrays and dtypes are not json serializable

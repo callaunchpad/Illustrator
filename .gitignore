@@ -9,3 +9,5 @@ server/backend/sketch_rnn/old_models
 *.h5
 *_env
 *.jpg
+*ssl/
+server/sample_drawings

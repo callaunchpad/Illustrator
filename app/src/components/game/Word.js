@@ -3,7 +3,7 @@ import { Container, ListGroup, Row, Col, Form, Button, Modal } from 'react-boots
 export default function Word(props) {
   // takes in a list of players and their scores
   const { chosenWord, revealLetter } = props;
-  console.log("OMG IT WORKED! " + chosenWord);
+  // console.log("OMG IT WORKED! " + chosenWord);
 
   function setCharAt(str, index, chr) {
     if(index > str.length - 1) return str;

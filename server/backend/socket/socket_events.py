@@ -52,7 +52,7 @@ async def on_send_draw(sid, data):
   game = ROOMS_GAMES[room]
   print('SEND DRAW ROOM ID IS: ' + room)
   game.game_round.drawing.add_stroke(data)
-  # with open("circle.txt", "a") as myfile:
+  # with open("lisa.txt", "a") as myfile:
   #   myfile.write(str(data) + "\n")
   # TODO: alter game state for when drawing occurs
   await sio.emit('receive_draw', data, room=room)
@@ -93,7 +93,6 @@ async def on_create_room(sid, data):
   print('data: ' + str(data))
   room = data['roomId']
   username = data['username']
-  # Use default join_room function: puts the user in a room
   sio.enter_room(sid, room)
 
   ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
@@ -102,6 +101,8 @@ async def on_create_room(sid, data):
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES[room].players)
+  await sio.emit('new_player_join', data, room=room)
+  data['username'] = 'bot'
   await sio.emit('new_player_join', data, room=room)
   
 """
@@ -128,6 +129,16 @@ async def on_start(sid, data):
   await ROOMS_GAMES[room].playGame()
 
 """
+Handle when the artist clears the canvas. Basically just clear
+the strokes the game is tracking for the classification model
+"""
+@sio.on('artist_cleared')
+async def on_artist_clear(sid, data):
+  room = data['roomId']
+  game = ROOMS_GAMES[room]
+  game.game_round.drawing.clear_strokes()
+
+"""
 handler for when a new user attempts to join a room
   data: username, room
 """
@@ -146,7 +157,6 @@ async def on_join(sid, data):
   print("ROOMS_GAMES Players List:")
   print(ROOMS_GAMES[room].players)
   await sio.emit('new_player_join', data, room=room)
-  # emit('new_player_join', {'roomId': room}, room=room)
 
 """
 handler for when a user leaves the room they're in

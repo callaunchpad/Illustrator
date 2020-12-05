@@ -6,6 +6,7 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import Chat from './Chat';
 import Leaderboard from './Leaderboard';
 import Word from './Word';
+import Timer from './timer/Timer';
 
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
@@ -13,8 +14,6 @@ export default function GamePlay(props) {
   const { username } = globalContext;
   const { roomId } = props;
   const sendGuess = (e) => {
-    // props.setMessages(props.messages.concat("hello"));
-    // console.log('messages: ', props.messages);
     e.preventDefault();
     let g = guess.trim();
     if (g.length) {
@@ -42,20 +41,24 @@ export default function GamePlay(props) {
           </Form>
         </Col>
         <Col xs={6}>
-        <p>The room id is: {roomId}</p>
-        </Col> 
+          <p>The room id is: {roomId}</p>
+        </Col>
+        <Col xs={4}>
+          <Timer
+            isTimerStarted={props.isTimerStarted}
+          />
+        </Col>
       </Row>
       <Row>
         <Word
-            chosenWord={props.chosenWord}
-            revealLetter={props.revealLetter}
+          chosenWord={props.chosenWord}
+          revealLetter={props.revealLetter}
         />
       </Row>
       <Row>
         <Col xs={2} style={{
           backgroundColor: 'white',
           padding: 0,
-          
         }}>
           <Leaderboard
             leaderboard={props.leaderboard}
@@ -63,6 +66,7 @@ export default function GamePlay(props) {
         </Col>
         <Col xs={6}>
           <Canvas
+            isTimerStarted={props.isTimerStarted}
             socket={props.socket}
             roomId={props.roomId}
             drawer={props.drawer}

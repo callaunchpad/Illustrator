@@ -5,7 +5,7 @@
 
 import React from 'react'
 import Sketch from "react-p5";
-import { Container, Row, Col, ListGroup } from 'react-bootstrap';
+import { Container, Row } from 'react-bootstrap';
 
 import './Canvas.css';
 // the global socket instance for this app
@@ -13,16 +13,10 @@ import './Canvas.css';
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH  = 500;
 export default function Canvas(props) {
-  const [releasedPen, setReleasedPen] = React.useState(false);
+  var shouldClear = false;
   const [xPos, setXPos] = React.useState(0);
   const [yPos, setYPos] = React.useState(0);
-  // set to true when it is the user's turn
-  const [canDraw, setCanDraw] = React.useState(true);
-  // text for the controlled form component. Contains the player's guess for the word
-  const [guessText, setGuessText] = React.useState('');
-  const [personDrawing, setPersonDrawing] = React.useState('');
-
-  const { socket, roomId, drawer,username} = props;
+  const { socket, roomId, drawer, username, isTimerStarted } = props;
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {
@@ -35,11 +29,6 @@ export default function Canvas(props) {
       p5.strokeWeight(data.strokeWidth)
       p5.line(data.x1, data.y1, data.x2, data.y2)
     });
-    // socket.on('receive_drawer', data => {
-    //   p5.stroke(data.color)
-    //   p5.strokeWeight(data.strokeWidth)
-    //   p5.line(data.x1, data.y1, data.x2, data.y2)
-    // });
 
     socket.on('clear_canvas', data => {
       console.log('clearing canvas...');
@@ -53,8 +42,8 @@ export default function Canvas(props) {
   // sends the mouse data to the server, which gets broadcasted to all players
   // in the same room
   const mouseDragged = (p5) => {
-    // only allow user to draw if it is their turn
-    if (username != drawer) {
+    // only allow user to draw if it is their turn and we are allowing drawings to happen
+    if (!isTimerStarted || username != drawer) {
       return;
     }
     if (p5.mouseX > CANVAS_WIDTH || p5.mouseY > CANVAS_HEIGHT || p5.mouseX < 0 || p5.mouseY < 0 ) {
@@ -74,6 +63,7 @@ export default function Canvas(props) {
   }
 
   const mouseReleased = (p5) => {
+    if (!isTimerStarted || username != drawer) { return; }
     const penLifted = 1;
     sendmouse(xPos, yPos, xPos, yPos, penLifted, 'rgba(100%,0%,100%,0.5)', 4);
   }
@@ -89,10 +79,10 @@ export default function Canvas(props) {
       penLifted,
       strokeWidth,
       roomId,
-    }
-    socket.emit('send_draw', data)
-    console.log("data")
-    console.log(data)
+    };
+    socket.emit('send_draw', data);
+    console.log("data");
+    console.log(data);
   }
 
   // this is constantly run
@@ -100,19 +90,12 @@ export default function Canvas(props) {
     // NOTE: Do not use setState in the draw function or in functions that are executed
     // in the draw function...
     // please use normal variables or class properties for these purposes
+    if (shouldClear) {
+      p5.clear();
+      socket.emit('artist_cleared', { roomId });
+      shouldClear = false;
+    }
   };
-
-  // runs on form submission. Sends player's guess to server, which broadcasts it to all other players
-  // in the same room
-  const guessWord = (e) => {
-    e.preventDefault();
-    console.log('guessed: ', guessText)
-    const data = {guessText, roomId}
-    socket.emit('send_guess', data)
-    console.log('emitted: ', guessText)
-    // emit a websocket event
-    setGuessText('')
-  }
 
   // return a really crappy Canvas component that'll be beautiful later
   return (
@@ -139,17 +122,7 @@ export default function Canvas(props) {
           mouseReleased={mouseReleased}
         />
       </Row>
-
-      
-      {/* <form onSubmit={guessWord}>
-        <label>
-          Guess:
-          <input type="text" value={guessText} onChange={(e) => setGuessText(e.target.value)} />
-        </label>
-        <input type="submit" value="Submit" />
-      </form> */}
-      <button onClick={() => socket.emit('test_sketch_rnn', {roomId})}>Test Sketch Rnn</button>
-      {/* <button onClick={() => {console.log("joining room..."); socket.emit('join', {roomId: 1, username: 'hello'})}}>Join room</button> */}
+      <button onClick={() => shouldClear = true}>Clear Drawing</button>
     </Container>
   )
 }
