@@ -98,9 +98,12 @@ def get_sketch_dictionary(class_name, use_dataset=False):
     # loads the weights from checkpoint into our model
     print("MODEL DIRECTORY IS: ", model_dir)
     load_checkpoint(sess, model_dir)
-    strokes = uncond_decode(temperature=.5)
-    strokes_dictionary = generate_strokes_dictionary(strokes,factor=0.05)
-    return strokes_dictionary
+    res = []
+    for _ in range(3):
+      strokes = uncond_decode(temperature=.5)
+      strokes_dictionary = generate_strokes_dictionary(strokes,factor=0.05)
+      res.append(strokes_dictionary)
+    return res
 
 print(get_sketch_dictionary("backpack", use_dataset=False))
 # def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):

@@ -167,12 +167,14 @@ class Drawing:
     await sio.emit('reveal_letter', data, room=roomId)
 
     model_outputs = []
-    NUM_SKETCHES =  3
+    # NUM_SKETCHES =  3
     # maybe make this generate method async
     if isinstance(self.artist, Bot):
       # generate NUM_SKETCHES different sketches
-      for _ in range(NUM_SKETCHES):
-        model_outputs.append(self.artist.generate(self.choice))
+      # for _ in range(NUM_SKETCHES):
+      #   model_outputs.append(self.artist.generate(self.choice))
+      # we do it in sketch_outputs now
+      model_outputs = self.artist.generate(self.choice)
     sketch_idx = 0
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       if isinstance(self.artist, Bot) and len(model_outputs[sketch_idx]) > 0:

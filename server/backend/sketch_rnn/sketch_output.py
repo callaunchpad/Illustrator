@@ -140,20 +140,22 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
         strokes = to_normal_strokes(sample_strokes)
         return strokes
 
-    if use_dataset:
-        # using dataset, will load dataset
-        [train_set, valid_set, test_set, hps_model] = load_dataset(data_dir, model_params)
-        stroke = test_set.random_sample()
-        z = encode(stroke)
-        strokes = decode(z, temperature=0.5) # convert z back to drawing at temperature of 0.5
-    else:
-        #use trained model instead
-        model_z = np.expand_dims(np.random.randn(model_params.z_size),0)
-        strokes = decode(model_z)
-    
-    strokes_dictionary = generate_strokes_dictionary(strokes,factor=0.05)
+    res = []
+    for _ in range(3):
+        if use_dataset:
+            # using dataset image to encode and decode. Sorta cheating
+            [train_set, valid_set, test_set, hps_model] = load_dataset(data_dir, model_params)
+            stroke = test_set.random_sample()
+            z = encode(stroke)
+            strokes = decode(z, temperature=0.5) # convert z back to drawing at temperature of 0.5
+        else:
+            #use trained model instead
+            model_z = np.expand_dims(np.random.randn(model_params.z_size), 0)
+            strokes = decode(model_z)
+            res.append(generate_strokes_dictionary(strokes,factor=0.05))
 
     if draw_mode:
+        strokes_dictionary = res[0]
         # set canvas size
         plt.figure(figsize=(8,8))
         plt.ylim(ymax = 0, ymin = 500)
@@ -177,6 +179,5 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
                                       alpha=0.65,
                                       connectionstyle="arc3,rad=0."),)
         plt.savefig("output/{}.jpg".format(class_name))
-
-    print("Sketch of {} saved to output/{}.jpg".format(class_name,class_name))
-    return strokes_dictionary
+        print("Sketch of {} saved to output/{}.jpg".format(class_name,class_name))
+    return res
