@@ -28,7 +28,7 @@ export default function Chat(props) {
           { messages.map((msg, idx) => {
             if (idx == messages.length - 1) {
               return (
-                <>                
+                <React.Fragment key={messages.length}>                
                   <ListGroup.Item
                     key={idx}
                     eventKey={idx}
@@ -41,10 +41,12 @@ export default function Chat(props) {
                     }}
                   >{msg}</ListGroup.Item>
                   {/* dummy div for autoscrolling */}
-                  <div style={{ float:"left", clear: "both", height: "0"}}
+                  <div
+                    key={messages.length}
+                    style={{ float:"left", clear: "both", height: "0"}}
                     ref={messageRef}>
                   </div>
-                </>
+                </React.Fragment>
               )
             } else {
               return (

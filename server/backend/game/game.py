@@ -40,7 +40,7 @@ class Game:
 
   async def endGame(self):
     print("ENDING GAME...")
-    self.showLeaderboard()
+    await self.showLeaderboard()
     self.state.status = 'ended'
     await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
     await self.socketio_instance.sleep(7)
@@ -176,7 +176,10 @@ class Drawing:
     sketch_idx = 0
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       if isinstance(self.artist, Bot) and len(model_outputs[sketch_idx]) > 0:
-        await sio.emit("receive_draw", model_outputs[sketch_idx].pop(0), room=roomId)
+        nextStroke = model_outputs[sketch_idx].pop(0)
+        if (nextStroke['penLifted']):
+          await sio.sleep(.5)  
+        await sio.emit("receive_draw", nextStroke, room=roomId)
         await sio.sleep(.05)
       elif isinstance(self.artist, Bot):
         # if more than a of the time has passed since the last drawing was drawn, then draw another one

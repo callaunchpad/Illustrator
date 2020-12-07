@@ -49,6 +49,8 @@ def generate_strokes_dictionary(strokes, factor=0.2):
         next_x = trans_x[i+1]
         next_y = trans_y[i+1]
         pen_lift = int(strokes[i][2])
+        if (pen_lift == 1):
+          print("PEN WAS LIFTED!")
 
         res.append({'x1': curr_x, 'y1': curr_y, 'x2': next_x, 'y2': next_y, 'color': 'rgba(100%,0%,100%,0.5)', 'penLifted': pen_lift, 'strokeWidth': 4, 'roomId': '1'})
 
@@ -100,7 +102,7 @@ def get_sketch_dictionary(class_name, use_dataset=False):
     strokes_dictionary = generate_strokes_dictionary(strokes,factor=0.05)
     return strokes_dictionary
 
-# print(get_sketch_dictionary("apple", use_dataset=False))
+print(get_sketch_dictionary("backpack", use_dataset=False))
 # def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):
 #     """
 #     return sketch dictionary given a class name

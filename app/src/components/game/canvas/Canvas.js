@@ -16,6 +16,7 @@ export default function Canvas(props) {
   var shouldClear = false;
   const [xPos, setXPos] = React.useState(0);
   const [yPos, setYPos] = React.useState(0);
+  const [penLifted, setPenLifted] = React.useState(0);
   const { socket, roomId, drawer, username, isTimerStarted } = props;
 
   // sets up the p5 canvas when component mounts
@@ -23,17 +24,23 @@ export default function Canvas(props) {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
     // Callback function
-    console.log("setting up canvas...")
+    console.log("setting up canvas...");
     socket.on('receive_draw', data => {
-      p5.stroke(data.color)
-      p5.strokeWeight(data.strokeWidth)
-      p5.line(data.x1, data.y1, data.x2, data.y2)
+      // means the previous data point has penLifted = true
+      // don't connect the previous point to this one
+      if (penLifted) {
+        console.log("pen lifted! ", data);
+        p5.line(data.x1, data.y1, data.x1, data.y1); // ?
+      }
+      p5.stroke(data.color);
+      p5.strokeWeight(data.strokeWidth);
+      p5.line(data.x1, data.y1, data.x2, data.y2);
+      setPenLifted(data.penLifted);
     });
 
     socket.on('clear_canvas', data => {
-      console.log('clearing canvas...');
       p5.clear();
-    })
+    });
 
     // only set up the canvas and manipulate the dom if it's mounted
     if (canvasParentRef) {
