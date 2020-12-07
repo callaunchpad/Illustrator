@@ -22,8 +22,8 @@ export default function Canvas(props) {
   const setup = (p5, canvasParentRef) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
-
     // Callback function
+    console.log("setting up canvas...")
     socket.on('receive_draw', data => {
       p5.stroke(data.color)
       p5.strokeWeight(data.strokeWidth)
@@ -35,7 +35,10 @@ export default function Canvas(props) {
       p5.clear();
     })
 
-    p5.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT).parent(canvasParentRef);
+    // only set up the canvas and manipulate the dom if it's mounted
+    if (canvasParentRef) {
+      p5.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT).parent(canvasParentRef);
+    }
   };
 
   // function that is run when the user drags their mouse on the canvas
@@ -122,7 +125,11 @@ export default function Canvas(props) {
           mouseReleased={mouseReleased}
         />
       </Row>
-      <button onClick={() => shouldClear = true}>Clear Drawing</button>
+      <button onClick={() => {
+        if (isTimerStarted && username == drawer) {
+          shouldClear = true;
+        }
+      }}>Clear Drawing</button>
     </Container>
   )
 }

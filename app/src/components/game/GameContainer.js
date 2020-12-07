@@ -60,15 +60,14 @@ function GameContainer(props) {
   // redirect to home page if user or room id does not exist
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
-
   var newRoomId = '';
   const { username, roomId } = globalContext;
-  if (username === undefined || username.length === 0) {
-    console.log("No username");
-    props.history.push("/");
-  }
 
   React.useEffect(() => {
+    if (username === undefined || username.length === 0) {
+      console.log("No username");
+      props.history.push("/");
+    }
     socket.on('connect', function() {
       if (roomId === undefined || roomId.length === 0) {
         let room = Math.random().toString(36).substring(7);

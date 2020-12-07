@@ -90,7 +90,7 @@ class Round:
     while len(self.players_drawn) < len(self.game.players):
       player = self.choosePlayer()
       await self.next_drawing(player)
-      await self.game.socketio_instance.emit('clear_canvas', {}, roomId=self.game.id)
+      await self.game.socketio_instance.emit('clear_canvas', {}, room=self.game.id)
   
   async def next_drawing(self, player):
     await self.chooseDrawing(player)
@@ -182,7 +182,7 @@ class Drawing:
         # if more than a of the time has passed since the last drawing was drawn, then draw another one
         if sketch_idx < NUM_SKETCHES - 1 and self.timer.current_time() > (sketch_idx + 1) * self.timer.seconds / NUM_SKETCHES:
           sketch_idx += 1
-          await sio.emit('clear_canvas', {}, roomId=self.game_round.game.id)
+          await sio.emit('clear_canvas', {}, room=self.game_round.game.id)
         await sio.sleep(0)
       else: # this is the case where the artist is not a Bot. Just sleep over and over again
         await sio.sleep(0)

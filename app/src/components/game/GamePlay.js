@@ -28,8 +28,8 @@ export default function GamePlay(props) {
   const startGame = (e) => {
     e.preventDefault();
     props.socket.emit('start_game', {
-        username,
-        roomId: roomId
+      username,
+      roomId: roomId
     });
   }
   return (
@@ -75,6 +75,7 @@ export default function GamePlay(props) {
         </Col>
         <Col xs={4} style={{backgroundColor: 'white'}}>
           <Chat
+            isTimerStarted={props.isTimerStarted}
             messages={props.messages}
             sendGuess={sendGuess}
             setGuess={setGuess}
