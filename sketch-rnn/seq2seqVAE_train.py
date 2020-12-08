@@ -9,22 +9,18 @@ from __future__ import print_function
 
 import argparse
 import json
+from keras.callbacks import ModelCheckpoint
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 import numpy as np
 import os
-import sys
 
 from seq2seqVAE import Seq2seqModel, get_default_hparams
-from keras.callbacks import ModelCheckpoint
+import sys
 from utils import load_dataset,batch_generator, KLWeightScheduler, LearningRateSchedulerPerBatch,\
     TensorBoardLR, DotDict, Logger
 
-from twilio.rest import Client
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 def get_callbacks_dict(seq2seq, model_params, experiment_path=''):
     """ create a dictionary of all used callbacks """
 
@@ -107,7 +103,8 @@ def main(args, hparams):
                         initial_epoch=args.initial_epoch)
 
     print("[INFO] serializing network...")
-    model.save(os.path.join(experiment_path,'weights.hdf5'))
+
+    model.save('experiments/{}/checkpoints/weights.hdf5'.format(args.label))
 
     plt.style.use("ggplot")
     plt.figure()
@@ -122,7 +119,8 @@ def main(args, hparams):
     plt.xlabel("Epoch #")
     plt.ylabel("Loss/Accuracy")
     plt.legend(loc="upper right")
-    plt.savefig("plot.png")
+    plt.savefig("plots/{}.jpg".format(args.label))
+
 
 if __name__ == '__main__':
 
@@ -157,12 +155,17 @@ if __name__ == '__main__':
     # Todo: support use of multiple datasets using command line. currently only supported when editing default params
     if isinstance(args.data_set, list):  # more than one dataset
         sets = [os.path.splitext(s)[0] for s in args.data_set]
-        experiment_path = os.path.join(args.experiment_dir, "{}\\exp".format('_'.join(sets)))
+        experiment_path = os.path.join(args.experiment_dir, "{}".format('_'.join(sets)))
         args.data_set = [s+'.npz' for s in sets]
     else:
         data_set = os.path.splitext(args.data_set)[0]
-        experiment_path = os.path.join(args.experiment_dir, "{}\\exp".format(data_set))
+        experiment_path = os.path.join(args.experiment_dir, "{}".format(data_set))
+        args.label=data_set
         args.data_set = '/datasets/sketch-rnn/'+data_set+'.full.npz'
+
+    #Create training plots directory if not exists
+    if not os.path.exists("plots"):
+        os.makedirs("plots")
 
     # Create a unique experiment folder
     # Todo: make this generic for operating systems other than windows path syntax
@@ -171,7 +174,6 @@ if __name__ == '__main__':
     while os.path.exists(new_experiment_path):
         new_experiment_path = experiment_path + '_' + str(dir_counter)
         dir_counter += 1
-
     args.experiment_dir = new_experiment_path
     main(args, hparams)
 
