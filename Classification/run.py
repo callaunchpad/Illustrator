@@ -23,7 +23,7 @@ paths = np.array(paths)
 names = [path.split('/')[-1].replace('.npz','') for path in paths]
 
 # load model
-model = keras.models.load_model(path.join(cwd, '12.h5'))
+model = keras.models.load_model(path.join(cwd, 'mobilenet_10.h5'))
 def read(path):
 	'''
 	Reads in time series given the path to the time series txt data

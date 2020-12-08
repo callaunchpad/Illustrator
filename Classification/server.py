@@ -1,8 +1,8 @@
 import aiohttp_cors
 from aiohttp import web
 
-# import run
-import lstm_run
+import run
+# import lstm_run
 
 routes = web.RouteTableDef()
 @routes.get('/')
@@ -15,8 +15,8 @@ async def classify(req):
   body = await req.json()
   word = body.get('word')
   strokes = body.get('strokes')
-  # pred = run.classify(strokes)
-  pred = lstm_run.classify(strokes)
+  pred = run.classify(strokes)
+  # pred = lstm_run.classify(strokes)
   response = {'pred': pred}
   return web.json_response(response)
 
