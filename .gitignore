@@ -11,4 +11,4 @@ server/backend/sketch_rnn/old_models
 *.jpg
 *ssl/
 server/sample_drawings
-server/backend/sketch_rnn/sketch_rnn_trained/
+server/backend/sketch_rnn/cond_models/

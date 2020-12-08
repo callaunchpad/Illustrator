@@ -88,7 +88,7 @@ def uncond_get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, 
     load_checkpoint(sess, model_dir)
 
 
-def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_dir=cwd):
+def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=False, model_dir=cwd):
     """
     return sketch dictionary given a class name
     encode/decode from https://github.com/eyalzk/sketch_rnn_keras
@@ -100,15 +100,15 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
     * draw_mode: should I draw a copy of the sketch to the 'output/' folder? (default: True)
     """
     # determine if we wanna use conditional or unconditional model
-    class_name = 'cond_{}'.format(class_name)
+    #class_name = 'cond_{}'.format(class_name)
 
     # Data directory on CSUA latte for grabbing datasets
     data_dir = '/datasets/sketch-rnn'
 
     # Checkpoint file name (assumed in checkpoints folder within exp_dir)
     weights_fname = 'weights.hdf5'
-    # Path to the experiment directory that was created during training
-    class_dir = path.join(model_dir, 'models/{}'.format(class_name))
+    # Path to the model directory that was created during training
+    class_dir = path.join(model_dir, 'cond_models', class_name)
 
     if not path.exists(class_dir):
         raise ValueError("class name does not exist.")
@@ -116,6 +116,7 @@ def get_sketch_dictionary(class_name, use_dataset=False, draw_mode=True, model_d
     config_path = path.join(class_dir, 'logs', 'model_config.json')
     with open(config_path, 'r') as f:
         model_params = json.load(f)
+        model_params['accelerate_LSTM'] = False
     model_params = DotDict(model_params)
 
     weights = path.join(class_dir,'checkpoints',weights_fname) # checkpoint path

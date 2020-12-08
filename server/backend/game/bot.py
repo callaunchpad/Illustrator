@@ -3,12 +3,13 @@ Class for defining a bot player
 """
 import sys
 import aiohttp
+import asyncio
 import numpy as np
 from os import path
 cwd = path.dirname(path.realpath(__file__))
 from .player import Player
-from ..sketch_rnn.uncond_sketch_output import get_sketch_dictionary
-
+# from ..sketch_rnn.uncond_sketch_output import get_sketch_dictionary
+from ..sketch_rnn.sketch_output import get_sketch_dictionary
 paths = []
 with open(path.join(cwd, 'names.txt'),'r') as f:
     for line in f.readlines():
@@ -48,6 +49,10 @@ class Bot(Player):
     print('generating strokes')
     strokes = get_sketch_dictionary(word, use_dataset=False)
     return strokes
+
+  async def async_generate(self, word):
+    print('async generating strokes')
+    return await asyncio.coroutine(self.generate)(word)
 
 
 
