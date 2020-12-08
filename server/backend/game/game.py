@@ -175,9 +175,9 @@ class Drawing:
       #   model_outputs.append(self.artist.generate(self.choice))
       # we do it in sketch_outputs now
       model_outputs = await self.artist.async_generate(self.choice)
+    self.timer.start()
     await sio.emit('establish_word', data, room=roomId)
     await sio.emit('reveal_letter', data, room=roomId)
-    print("model outputs: ", model_outputs)
     sketch_idx = 0
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       if isinstance(self.artist, Bot) and len(model_outputs[sketch_idx]) > 0:
