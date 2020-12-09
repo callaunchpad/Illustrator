@@ -7,10 +7,8 @@
 
 import React from 'react'
 import { withRouter } from 'react-router-dom';
-import socketIOClient from "socket.io-client";
 import { Container, Row, Col, Form, Button, Modal } from 'react-bootstrap';
 
-import ENDPOINTS from '../../endpoints';
 import End from './screens/End';
 import Lobby from './Lobby';
 import TimesUp from './screens/TimesUp';
@@ -71,28 +69,6 @@ function GameContainer(props) {
       console.log("No username");
       props.history.push("/");
     }
-    // socket.on('connect', function() {
-    //   if (roomId === undefined || roomId.length === 0) {
-    //     let room = Math.random().toString(36).substring(7);
-    //     console.log(`Generating room id and creating game...`);
-    //     console.log(`room id is ${room}`);
-    //     newRoomId = room
-    //     setRoomIdState(room);
-    //     socket.emit('create_room', {
-    //       username,
-    //       'roomId': room,
-    //     });
-    //   } else {
-    //     console.log(`Websocket connected! Now joining room: ${roomId}`);
-    //     newRoomId = roomId;
-    //     setRoomIdState(roomId);
-    //     socket.emit('join', {
-    //       username,
-    //       roomId,
-    //     });
-    //   }
-      
-    // });
   
     socket.on('disconnect', function() {
       console.log("websocket disconnected")
@@ -164,9 +140,13 @@ function GameContainer(props) {
     // the round officialy ends when this is sent
     socket.on('show_leaderboard', function (data) {
       console.log('leaderboard: ', data);
-      setIsTimerStarted(false);
       setLeaderboard(data.leaderboard);
-    })
+    });
+
+    socket.on('draw_end', function (data) {
+      console.log("drawing finished");
+      setIsTimerStarted(false);
+    });
     
     // this is when the round officially starts with the drawing
     socket.on('establish_word', function (data) {
@@ -182,12 +162,12 @@ function GameContainer(props) {
 
     // disconnect the socket when component unmounts
     return () => {
-      console.log("disconnecting...");
+      console.log("leaving...");
       socket.emit('leave', {
         username,
         'roomId': roomId,
       });
-      socket.disconnect();
+      // socket.disconnect();
     };
   }, []);
 
@@ -205,7 +185,6 @@ function GameContainer(props) {
   const displayScreen = () => {
     return (
       <GamePlay
-        socket={socket}
         guesses={guesses}
         messages={messages}
         setMessages={setMessages}

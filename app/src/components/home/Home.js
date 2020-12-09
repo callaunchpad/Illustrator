@@ -27,7 +27,7 @@ function Home(props) {
         username,
         roomId,
       });
-      const { create, join } = res.data;
+      const { too_many, duplicate, create, join } = res.data;
       if (create) {
         // emit create game event
         let room = Math.random().toString(36).substring(7);
@@ -39,6 +39,14 @@ function Home(props) {
           'roomId': room,
         });
       } else if (join) {
+        if (duplicate) {
+          alert(`A user with username ${username} already exists in room ${roomId}`);
+          return;
+        }
+        if (too_many) {
+          alert(`This room already has 8 people in it :(`);
+          return;
+        }
         console.log(`Websocket connected! Now joining room: ${roomId}`);
         socket.emit('join', {
           username,
@@ -46,12 +54,14 @@ function Home(props) {
         });
       } else {
         alert("Please enter a username :)");
+        return;
       }
       props.history.push({
         pathname: '/game',
         state: { roomId },
       });
     } catch(e) {
+      alert("something went wrong with your request to the server :(");
       console.log(e);
     }
   }

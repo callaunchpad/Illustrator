@@ -30,6 +30,8 @@ class Bot(Player):
     self.sid = 0
     self.guesses = []
     self.guess_idx = 0
+  def __eq__(self, obj):
+    return isinstance(obj, Bot) and self.sid == obj.sid and self.model == obj.model
 
   async def classify(self, strokes):
     async with aiohttp.ClientSession() as session:

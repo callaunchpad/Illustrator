@@ -2,21 +2,13 @@
 This file contains all the handlers for socket events. In other words, we define
 the logic for how our server will respond to certain socket events triggered by the client
 """
-# import tensorflow as tf
-# from tensorflow import keras
-
-import numpy as np
-# from keras import backend as K
-
-import socketio
-from collections import defaultdict
-# from ..sketch_rnn_keras.seq2seqVAE import Seq2seqModel, sample
-# from ..sketch_rnn_keras.utils import DotDict, to_normal_strokes
-
-from ..game.game import *
-import json
 import os
+import json
 import time
+import socketio
+import numpy as np
+from ..game.game import *
+from ..globals import ROOMS_GAMES, PlAYER_TO_GAME, ROOM_USERNAMES
 dirname = os.path.dirname(__file__)
 
 # initialize a socket instance
@@ -24,13 +16,6 @@ dirname = os.path.dirname(__file__)
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*', logger=True)
 # need to do this to allow usage of tf 1
 # tf.compat.v1.disable_eager_execution()
-
-# dict for tracking active rooms
-# maps room to list of players
-ROOMS_GAMES = {}
-
-# dict for mapping player sid to game id
-PlAYER_TO_GAME = {}
 
 """
 handler for when a user connects to the server
@@ -94,8 +79,11 @@ async def on_create_room(sid, data):
   room = data['roomId']
   username = data['username']
   sio.enter_room(sid, room)
+
   PlAYER_TO_GAME[sid] = room
   ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
+  ROOM_USERNAMES[room].add(username)
+  ROOM_USERNAMES[room].add('bot') # don't forget to add bot's username!
   await ROOMS_GAMES[room].addPlayer(sid, username)
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
@@ -136,7 +124,7 @@ the strokes the game is tracking for the classification model
 async def on_artist_clear(sid, data):
   room = data['roomId']
   game = ROOMS_GAMES[room]
-  game.game_round.drawing.clear_strokes()
+  await game.game_round.drawing.clear_strokes()
 
 """
 handler for when a new user attempts to join a room
@@ -150,6 +138,7 @@ async def on_join(sid, data):
   username = data['username']
   sio.enter_room(sid, room)
   PlAYER_TO_GAME[sid] = room
+  ROOM_USERNAMES[room].add(username)
   await ROOMS_GAMES[room].addPlayer(sid, username)
 
   print("ROOMS_GAMES:")
@@ -159,35 +148,61 @@ async def on_join(sid, data):
   await sio.emit('new_player_join', data, room=room)
 
 """
-handler for when a user leaves the room they're in
+Handler for when the client chooses a word to draw
 """
-@sio.on('leave')
-async def on_leave(sid, data):
-  print('leaving... SOCKET')
-  room = data['roomId']
-  # ROOMS.pop(room)
-  ROOMS_GAMES[room].removePlayer(sid)
-  sio.leave_room(sid, room)
-  await sio.emit('player_leave', data, room=room)
-
 @sio.on("receive_word")
 def on_receive_word(sid, data):
   room = data['roomId']
   word = data['word']
-  print("RECEIVED_WORD SOCKET: ", word)
-
   game = ROOMS_GAMES[room]
   game.game_round.choice = word
 
-@sio.on("disconnect")
-def disconnect(sid):
-  print('disconnected: ', sid)
+"""
+handler for when a user leaves the room they're in. Same logic as disconnect
+"""
+@sio.on('leave')
+async def on_leave(sid, data):
+  print('leaving...')
+  # don't do anything if player doesnt exist in this mapping. 
+  # this happens if the client opens the app but doesn't actually join or create a game
+  if (not PlAYER_TO_GAME.get(sid, False)):
+    return
   game_id = PlAYER_TO_GAME[sid]
   # remove this player from the player_to_game map
   del PlAYER_TO_GAME[sid]
   game = ROOMS_GAMES[game_id]
+  # remove this player's username from the set of usernames in this room
+  for p in game.players:
+    if p.sid == sid:
+      ROOM_USERNAMES[game_id].remove(p.username)
+      break
   # remove this player from the game they were in
-  game.players = [p for p in game.players if isinstance(p, Bot) or p.sid != sid]
+  await game.removePlayer(sid)
+  # destroy the game if only the bot remains
+  if len(game.players) <= 1:
+    del ROOMS_GAMES[game_id]
+"""
+handler for when a user disconnects. This happens when the tab closes, or they go back
+to the home page, or they refresh
+"""
+@sio.on("disconnect")
+async def disconnect(sid):
+  print('disconnected: ', sid)
+  # don't do anything if player doesnt exist in this mapping. 
+  # this happens if the client opens the app but doesn't actually join or create a game
+  if (not PlAYER_TO_GAME.get(sid, False)):
+    return
+  game_id = PlAYER_TO_GAME[sid]
+  # remove this player from the player_to_game map
+  del PlAYER_TO_GAME[sid]
+  game = ROOMS_GAMES[game_id]
+  # remove this player's username from the set of usernames in this room
+  for p in game.players:
+    if p.sid == sid:
+      ROOM_USERNAMES[game_id].remove(p.username)
+      break
+  # remove this player from the game they were in
+  await game.removePlayer(sid)
   # destroy the game if only the bot remains
   if len(game.players) <= 1:
     del ROOMS_GAMES[game_id]

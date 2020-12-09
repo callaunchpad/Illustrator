@@ -50,20 +50,30 @@ class Game:
       self.leaderboard[elem] = 0
     await self.showLeaderboard()
   
-  async def addPlayer(self, id, username):
-    self.players.append(Human(username, id))
+  async def addPlayer(self, sid, username):
+    self.players.append(Human(username, sid))
+    if (self.game_round):
+      self.game_round.players_copy.append(Human(username, sid))
     self.leaderboard[username] = 0
-    # if (len(leaderboard) > 2): # more than just one player and the bot
     await self.showLeaderboard()
   
-  def removePlayer(self, id):
+  async def removePlayer(self, sid):
     for human in self.players:
-      if human.sid == id:
-        self.players.pop(human)
-      if human in self.game_round.players_drawn:
-        self.game_round.players_drawn.pop(human)
-      if human in self.game_round.players_copy:
-        self.game_round.players_copy.pop(human)
+      print("human: ", human)
+      if human.sid == sid:
+        self.players.remove(human)
+        del self.leaderboard[human.username]
+        if self.game_round:
+          for p in self.game_round.players_drawn:
+            if p.sid == sid:
+              self.game_round.players_drawn.remove(p)
+              break
+        if self.game_round:
+          for p_c in self.game_round.players_copy:
+            if p_c.sid == sid:
+              self.game_round.players_copy.remove(p_c)
+              break
+    await self.showLeaderboard()
 
   async def playRound(self):
     print("STARTING ROUND" + str(self.curr_round))
@@ -109,6 +119,7 @@ class Round:
       self.drawing.timer.start()
       await asyncio.wait([self.drawing.draw(), self.drawing.bot_guess(), self.drawing.revealLetters()])
     self.players_drawn.append(player)
+    await self.game.socketio_instance.emit('draw_end', {}, room=self.game.id)
 
   def choosePlayer(self):
     # print("PLAYERSCOPY")
@@ -216,8 +227,11 @@ class Drawing:
   def add_stroke(self, stroke):
     self.stroke_list.append(stroke)
   
-  def clear_strokes(self):
+  async def clear_strokes(self):
+    roomId = self.game_round.game.id
+    sio = self.game_round.game.socketio_instance
     self.stroke_list = []
+    await sio.emit('clear_canvas', {}, room=roomId)
 
   async def bot_guess(self):
     bot_guesses = []

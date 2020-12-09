@@ -9,14 +9,14 @@ import { Container, Row } from 'react-bootstrap';
 
 import './Canvas.css';
 // the global socket instance for this app
-// import socket from '../../../socket';
+import socket from '../../../socket';
 const CANVAS_HEIGHT = 500;
 const CANVAS_WIDTH  = 500;
 export default function Canvas(props) {
   var shouldClear = false;
   const [xPos, setXPos] = React.useState(0);
   const [yPos, setYPos] = React.useState(0);
-  const { socket, roomId, drawer, username, isTimerStarted } = props;
+  const { roomId, drawer, username, isTimerStarted } = props;
 
   // sets up the p5 canvas when component mounts
   const setup = (p5, canvasParentRef) => {

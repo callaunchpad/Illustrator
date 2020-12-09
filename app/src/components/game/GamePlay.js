@@ -8,6 +8,8 @@ import Leaderboard from './Leaderboard';
 import Word from './Word';
 import Timer from './timer/Timer';
 
+import socket from '../../socket';
+
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
   const globalContext = React.useContext(GlobalContext);
@@ -17,7 +19,7 @@ export default function GamePlay(props) {
     e.preventDefault();
     let g = guess.trim();
     if (g.length) {
-      props.socket.emit('send_guess', {
+      socket.emit('send_guess', {
         username,
         roomId,
         guess: g,
@@ -27,7 +29,7 @@ export default function GamePlay(props) {
   }
   const startGame = (e) => {
     e.preventDefault();
-    props.socket.emit('start_game', {
+    socket.emit('start_game', {
       username,
       roomId: roomId
     });
@@ -67,7 +69,6 @@ export default function GamePlay(props) {
         <Col xs={6}>
           <Canvas
             isTimerStarted={props.isTimerStarted}
-            socket={props.socket}
             roomId={props.roomId}
             drawer={props.drawer}
             username={props.username}
