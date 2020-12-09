@@ -197,6 +197,8 @@ function GameContainer(props) {
         guesses={guesses}
         messages={messages}
         setMessages={setMessages}
+        gameStarted={gameStarted}
+        setGameStarted={setGameStarted}
         leaderboard={leaderboard}
         chosenWord={chosenWord}
         revealLetter={revealLetter}

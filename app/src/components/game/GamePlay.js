@@ -13,10 +13,9 @@ import socket from '../../socket';
 
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
-  const [gameStarted, setGameStarted] = React.useState(false);
   const globalContext = React.useContext(GlobalContext);
   const { username } = globalContext;
-  const { roomId } = props;
+  const { roomId, gameStarted, setGameStarted } = props;
   const sendGuess = (e) => {
     e.preventDefault();
     let g = guess.trim();
