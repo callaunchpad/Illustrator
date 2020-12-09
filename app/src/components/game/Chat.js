@@ -7,7 +7,7 @@ export default function Chat(props) {
   React.useEffect(() => {
     if (messageRef.current && isTimerStarted) {
       console.log("scrolling into view!");
-      messageRef.current.scrollIntoView({ behavior: "smooth" });
+      messageRef.current.scrollIntoView(false, { behavior: "smooth" });
     }
   }, [messages])
   return (
