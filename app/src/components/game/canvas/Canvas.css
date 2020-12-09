@@ -47,8 +47,8 @@ p {
   margin-bottom: 2rem;
 }
 
-button {
-  margin-left: 1rem;
+.clear_button {
+  font-size: 20px;
 }
 
 #chat {

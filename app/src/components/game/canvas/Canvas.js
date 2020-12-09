@@ -119,6 +119,7 @@ export default function Canvas(props) {
         <Sketch
           style={{
             backgroundColor: 'white',
+            paddingLeft: '10px',
           }}
           setup={setup}
           draw={draw}
@@ -126,7 +127,7 @@ export default function Canvas(props) {
           mouseReleased={mouseReleased}
         />
       </Row>
-      <button onClick={() => {
+      <button class="clear_button" onClick={() => {
         if (isTimerStarted && username == drawer) {
           shouldClear = true;
         }

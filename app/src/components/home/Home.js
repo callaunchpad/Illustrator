@@ -4,6 +4,7 @@ import { withRouter } from 'react-router-dom';
 import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import endpoints from '../../endpoints';
 import './Home.css';
+import logo from './illustrator_logo.png';
 
 import socket from '../../socket';
 
@@ -91,30 +92,35 @@ function Home(props) {
 
   return (
     <Container>
+      <Row className="justify-content-md-center">
+        <img src={logo}></img>
+      </Row>
       <Form>
         <Form.Group controlId="formName">
           {/* <Form.Label style={{color: 'white'}}>Name</Form.Label> */}
-          <Form.Row>
-            <Col xs={9}>
+          <Form.Row className="justify-content-md-center">
+            <Col xs={4}>
               <Form.Control
                 type="text"
                 placeholder="Enter name..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
-            </Col>
-            <Col>
-              <Button variant="primary" onClick={handleCreateAndJoin}>
-                Create Room
-              </Button>
+
             </Col>
           </Form.Row>
+            <div class="pad"></div>
+            <Button variant="outline-light" onClick={handleCreateAndJoin}>
+              Create Room
+            </Button>
+          
         </Form.Group>
+        
 
         <Form.Group controlId="formRoomId">
           {/* <Form.Label style={{color: 'white'}}>Room Id</Form.Label> */}
-          <Form.Row>
-            <Col>
+          <Form.Row className="justify-content-md-center">
+            <Col xs={4}>
               <Form.Control
                 type="text"
                 placeholder="Room id..."
@@ -123,11 +129,12 @@ function Home(props) {
               />
             </Col>
           </Form.Row>
-          
+          <div class="pad"></div>
+          <Button class="button" variant="outline-light" onClick={handleCreateAndJoin}>
+            Join Room
+          </Button>
         </Form.Group>
-        <Button variant="primary" onClick={handleCreateAndJoin}>
-          Join Room
-        </Button>
+        
       </Form>
     </Container>
   )

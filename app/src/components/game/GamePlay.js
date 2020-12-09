@@ -7,6 +7,7 @@ import Chat from './Chat';
 import Leaderboard from './Leaderboard';
 import Word from './Word';
 import Timer from './timer/Timer';
+import logo from '../home/illustrator_logo.png';
 
 import socket from '../../socket';
 
@@ -36,10 +37,13 @@ export default function GamePlay(props) {
   }
   return (
     <Container>
+      <Row className="justify-content-md-center">
+        <img src={logo} class="logo"></img>
+      </Row>
       <Row>
         <Col xs={2}>
           <Form onSubmit={startGame}>
-            <Button type="submit">Start Game</Button>
+            <Button type="submit" variant="outline-light">Start Game</Button>
           </Form>
         </Col>
         <Col xs={6}>

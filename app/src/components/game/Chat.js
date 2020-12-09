@@ -15,7 +15,7 @@ export default function Chat(props) {
       height: '100%',
     }}>
       <Row>
-        <span style={{fontSize: '12pt', color: 'black'}}>Chat Window</span>
+        <span style={{fontSize: '12pt', color: 'black', fontWeight: 'bold', textAlign: 'center', paddingTop: '5px'}}>Chat Window</span>
       </Row>
       <Row style={{
         overflowY: 'auto',
@@ -38,7 +38,8 @@ export default function Chat(props) {
                       color: 'black',
                       padding: 0,
                       border: 'none',
-                      paddingTop: '3px'
+                      paddingTop: '3px',
+                      textAlign: 'left',
                     }}
                   >{msg}</ListGroup.Item>
                   {/* dummy div for autoscrolling */}
