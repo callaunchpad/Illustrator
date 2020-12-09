@@ -20,6 +20,8 @@ import GlobalContext from '../../context';
 import { CardActionArea } from '@material-ui/core';
 import ChooseWord from './screens/ChooseWord';
 
+import socket from '../../socket'
+
 const GAME_END  = 'game_end';
 const TIME_UP   = 'time up';
 const NO_MODAL  = 'No modal';
@@ -27,7 +29,7 @@ const GAME_START  = 'game_start';
 const CHOOSE_WORD = "Pick a word!";
 
 function GameContainer(props) {
-  const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
+  // const [socket, _] = React.useState(socketIOClient(ENDPOINTS.root));
   const [gameStarted, setGameStarted] = React.useState(false);
   const [modalToDisplay, setModalToDisplay] = React.useState(NO_MODAL);
 
@@ -39,7 +41,7 @@ function GameContainer(props) {
   const [leaderboard, setLeaderboard] = React.useState({});
   const [chosenWord, setChosenWord] = React.useState('');
   const [revealLetter, setRevealLetter] = React.useState([]);
-  const [roomIdState, setRoomIdState] = React.useState('');
+  // const [roomIdState, setRoomIdState] = React.useState('');
   const [drawer, setDrawer] = React.useState('');
   const [isTimerStarted, setIsTimerStarted] = React.useState(false); // toggle to start/stop timer
 
@@ -60,36 +62,37 @@ function GameContainer(props) {
   // redirect to home page if user or room id does not exist
   // this will typically happen if the user refreshes
   // can make this more robust laster by storing username, roomid in localstorage
-  var newRoomId = '';
+  // var newRoomId = '';
   const { username, roomId } = globalContext;
 
   React.useEffect(() => {
+    console.log(username, roomId);
     if (username === undefined || username.length === 0) {
       console.log("No username");
       props.history.push("/");
     }
-    socket.on('connect', function() {
-      if (roomId === undefined || roomId.length === 0) {
-        let room = Math.random().toString(36).substring(7);
-        console.log(`Generating room id and creating game...`);
-        console.log(`room id is ${room}`);
-        newRoomId = room
-        setRoomIdState(room);
-        socket.emit('create_room', {
-          username,
-          'roomId': room,
-        });
-      } else {
-        console.log(`Websocket connected! Now joining room: ${roomId}`);
-        newRoomId = roomId;
-        setRoomIdState(roomId);
-        socket.emit('join', {
-          username,
-          roomId,
-        });
-      }
+    // socket.on('connect', function() {
+    //   if (roomId === undefined || roomId.length === 0) {
+    //     let room = Math.random().toString(36).substring(7);
+    //     console.log(`Generating room id and creating game...`);
+    //     console.log(`room id is ${room}`);
+    //     newRoomId = room
+    //     setRoomIdState(room);
+    //     socket.emit('create_room', {
+    //       username,
+    //       'roomId': room,
+    //     });
+    //   } else {
+    //     console.log(`Websocket connected! Now joining room: ${roomId}`);
+    //     newRoomId = roomId;
+    //     setRoomIdState(roomId);
+    //     socket.emit('join', {
+    //       username,
+    //       roomId,
+    //     });
+    //   }
       
-    });
+    // });
   
     socket.on('disconnect', function() {
       console.log("websocket disconnected")
@@ -130,7 +133,7 @@ function GameContainer(props) {
       setGameStarted(true);
       socket.emit('start', {
         username,
-        'roomId': newRoomId,
+        'roomId': roomId,
       });
     });
 
@@ -182,7 +185,7 @@ function GameContainer(props) {
       console.log("disconnecting...");
       socket.emit('leave', {
         username,
-        'roomId': roomIdState,
+        'roomId': roomId,
       });
       socket.disconnect();
     };
@@ -192,7 +195,7 @@ function GameContainer(props) {
     console.log("running on choose word: ", word);
     socket.emit("receive_word", {
       username,
-      'roomId': roomIdState,
+      'roomId': roomId,
       word,
     });
     setChosenWord(word);
@@ -209,7 +212,7 @@ function GameContainer(props) {
         leaderboard={leaderboard}
         chosenWord={chosenWord}
         revealLetter={revealLetter}
-        roomId={roomIdState}
+        roomId={roomId}
         drawer={drawer}
         username={username}
         isTimerStarted={isTimerStarted}

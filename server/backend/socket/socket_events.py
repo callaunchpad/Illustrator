@@ -27,14 +27,14 @@ sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*', logge
 
 # dict for tracking active rooms
 # maps room to list of players
-ROOMS_GAMES = {'1': Game('1', sio, 4)}
+ROOMS_GAMES = {}
+
+# dict for mapping player sid to game id
+PlAYER_TO_GAME = {}
 
 """
 handler for when a user connects to the server
 """
-# @sio.event
-# def connect(sid, environ):
-#   print('connected: ', sid)
 @sio.on('connect')
 def on_connect(sid, environ):
   """Create a game lobby"""
@@ -94,7 +94,7 @@ async def on_create_room(sid, data):
   room = data['roomId']
   username = data['username']
   sio.enter_room(sid, room)
-
+  PlAYER_TO_GAME[sid] = room
   ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
   await ROOMS_GAMES[room].addPlayer(sid, username)
   print("ROOMS_GAMES:")
@@ -149,7 +149,7 @@ async def on_join(sid, data):
   room = data['roomId']
   username = data['username']
   sio.enter_room(sid, room)
-  
+  PlAYER_TO_GAME[sid] = room
   await ROOMS_GAMES[room].addPlayer(sid, username)
 
   print("ROOMS_GAMES:")
@@ -178,3 +178,16 @@ def on_receive_word(sid, data):
 
   game = ROOMS_GAMES[room]
   game.game_round.choice = word
+
+@sio.on("disconnect")
+def disconnect(sid):
+  print('disconnected: ', sid)
+  game_id = PlAYER_TO_GAME[sid]
+  # remove this player from the player_to_game map
+  del PlAYER_TO_GAME[sid]
+  game = ROOMS_GAMES[game_id]
+  # remove this player from the game they were in
+  game.players = [p for p in game.players if isinstance(p, Bot) or p.sid != sid]
+  # destroy the game if only the bot remains
+  if len(game.players) <= 1:
+    del ROOMS_GAMES[game_id]

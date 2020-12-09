@@ -14,5 +14,10 @@ async def game(req):
   body = await req.json()
   username = body.get('username')
   roomId = body.get('roomId')
-  response = {'join': username and roomId, 'create': username and True}
+  response = {
+    'join': username and roomId,
+    'create': username and not roomId,
+    'username': username,
+    'roomId': roomId
+  }
   return web.json_response(response)
