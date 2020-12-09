@@ -218,7 +218,7 @@ class Drawing:
       self.correct_players.append(player_instance)
       # TODO: have some score multiplier with the time?
       # add points to a player, maybe move to another method later
-      self.game_round.game.leaderboard[username] += self.time_limit - self.timer.current_time()
+      self.game_round.game.leaderboard[username] += self.time_limit - self.timer.current_time() + 5
       return 1
     else:
       self.guesses.append(guess)
