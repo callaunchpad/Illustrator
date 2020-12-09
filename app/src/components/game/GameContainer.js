@@ -113,9 +113,14 @@ function GameContainer(props) {
       });
     });
 
+    socket.on('start_game', function (data) {
+      setGameStarted(true);
+    });
+
     socket.on('end_game', function (data) {
       console.log("end game client");
-      setGameStarted(false);
+      // setGameStarted(false);
+      setGameStarted(true);
       setModalToDisplay(GAME_END);
     });
 

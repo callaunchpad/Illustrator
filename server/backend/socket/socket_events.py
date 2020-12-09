@@ -81,7 +81,7 @@ async def on_create_room(sid, data):
   sio.enter_room(sid, room)
 
   PlAYER_TO_GAME[sid] = room
-  ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
+  ROOMS_GAMES[room] = Game(room, sio, 2) # need num_rounds from client? create game interface
   ROOM_USERNAMES[room].add(username)
   ROOM_USERNAMES[room].add('bot') # don't forget to add bot's username!
   await ROOMS_GAMES[room].addPlayer(sid, username)
@@ -114,6 +114,7 @@ async def on_start(sid, data):
   print("START SOCKET")
   print("data: " + str(data))
   room = data["roomId"]
+  await sio.emit('start_game', {}, room=room)
   await ROOMS_GAMES[room].playGame()
 
 """

@@ -18,7 +18,7 @@ words = open(path.join(cwd, 'deck.csv'), 'r')
 deck = [row[0] for row in csv.reader(words)]
 
 class Game:
-  def __init__(self, room_id, socketio_instance, num_rounds=3, players=[], deck=deck):
+  def __init__(self, room_id, socketio_instance, num_rounds=2, players=[], deck=deck):
     self.bot = Bot('ResNet50', deck)
     self.players = players + [self.bot]
     self.state = GameState()
@@ -129,7 +129,7 @@ class Round:
     return player    # return player object
     
   async def chooseDrawing(self, player):
-    options = np.random.choice(self.game.deck, 3, replace=False)
+    options = np.random.choice(self.game.deck, min(3, len(self.game.deck)), replace=False)
 
     self.choice = ""
     # if the player is a bot, choose the word immediately
@@ -137,6 +137,7 @@ class Round:
       self.choice = np.random.choice(options)
       print("Bot chose: ", self.choice)
       self.game.deck.remove(self.choice)
+      await self.game.socketio_instance.emit("set_drawer", {'username':player.username}, room=self.game.id)
       return
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
