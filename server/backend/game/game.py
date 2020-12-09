@@ -50,9 +50,11 @@ class Game:
       self.leaderboard[elem] = 0
     await self.showLeaderboard()
   
-  def addPlayer(self, id, username):
+  async def addPlayer(self, id, username):
     self.players.append(Human(username, id))
     self.leaderboard[username] = 0
+    # if (len(leaderboard) > 2): # more than just one player and the bot
+    await self.showLeaderboard()
   
   def removePlayer(self, id):
     for human in self.players:
@@ -249,7 +251,7 @@ class Drawing:
     sio   = self.game_round.game.socketio_instance
     delay = self.time_limit / revealed_letters  # delay time
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
-      if (len(letters_list) >= len(self.choice) - 2):
+      if (len(self.letters_list) >= len(self.choice) - 2):
         break
       curr_time = self.timer.current_time()
       if (curr_time > delay / 2 and curr_time > (len(self.letters_list) + 1) * self.time_limit / len(self.choice)):

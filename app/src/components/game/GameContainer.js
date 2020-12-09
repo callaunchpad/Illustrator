@@ -113,9 +113,10 @@ function GameContainer(props) {
   
     socket.on('new_player_join', function (data) {
       setMessages(messagesRef.current.concat(`${data.username} has joined the room :D`));
-      let copy = JSON.parse(JSON.stringify(leaderboardRef.current));
-      copy[data.username] = 0;
-      setLeaderboard(copy);
+      // let copy = JSON.parse(JSON.stringify(leaderboardRef.current));
+      // console.log("new leaderboard: ", copy);
+      // copy[data.username] = 0;
+      // setLeaderboard(copy);
     });
   
     socket.on('player_leave', function (data) {

@@ -96,7 +96,7 @@ async def on_create_room(sid, data):
   sio.enter_room(sid, room)
 
   ROOMS_GAMES[room] = Game(room, sio, 3) # need num_rounds from client? create game interface
-  ROOMS_GAMES[room].addPlayer(sid, username)
+  await ROOMS_GAMES[room].addPlayer(sid, username)
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())
   print("ROOMS_GAMES Players List:")
@@ -150,7 +150,7 @@ async def on_join(sid, data):
   username = data['username']
   sio.enter_room(sid, room)
   
-  ROOMS_GAMES[room].addPlayer(sid, username)
+  await ROOMS_GAMES[room].addPlayer(sid, username)
 
   print("ROOMS_GAMES:")
   print(ROOMS_GAMES.items())

@@ -7,7 +7,6 @@ export default function Leaderboard(props) {
   return (
     <Container style={{padding: 0}}>
         <span style={{fontSize: '12pt', color: 'black'}}>Leaderboard</span>
-
         <ListGroup>
           { Object.keys(leaderboard).map((username, idx) => {
             // kv is a 2 element array. 0th entry is username, 1st is score
