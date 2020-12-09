@@ -13,6 +13,7 @@ import socket from '../../socket';
 
 export default function GamePlay(props) {
   const [guess, setGuess] = React.useState('');
+  const [gameStarted, setGameStarted] = React.useState(false);
   const globalContext = React.useContext(GlobalContext);
   const { username } = globalContext;
   const { roomId } = props;
@@ -30,6 +31,7 @@ export default function GamePlay(props) {
   }
   const startGame = (e) => {
     e.preventDefault();
+    setGameStarted(true);
     socket.emit('start_game', {
       username,
       roomId: roomId
@@ -43,7 +45,13 @@ export default function GamePlay(props) {
       <Row>
         <Col xs={2}>
           <Form onSubmit={startGame}>
-            <Button type="submit" variant="outline-light">Start Game</Button>
+            <Button
+              type="submit"
+              disabled={gameStarted || Object.keys(props.leaderboard).length === 0 && props.leaderboard.constructor === Object}
+              variant="outline-light"
+            >
+              {gameStarted ? "Game started!" : "Start Game"}
+            </Button>
           </Form>
         </Col>
         <Col xs={6}>

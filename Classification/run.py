@@ -23,7 +23,7 @@ paths = np.array(paths)
 names = [path.split('/')[-1].replace('.npz','') for path in paths]
 
 # load model
-model = keras.models.load_model(path.join(cwd, 'mobilenet_10.h5'))
+model = keras.models.load_model(path.join(cwd, 'mobilenet_beach.h5'))
 def read(path):
 	'''
 	Reads in time series given the path to the time series txt data
@@ -72,7 +72,7 @@ def pred(img, classes):
   '''
   Predict the class with the highest probability
   '''
-  top_n = 10
+  top_n = 23
   predictions = model.predict(np.array([img]))[0]
   print("model predictions: ", predictions)
   res = predictions.argsort()[-1*top_n:][::-1] # take top n predictions

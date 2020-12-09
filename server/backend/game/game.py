@@ -33,7 +33,7 @@ class Game:
   async def playGame(self):
     print("STARTING GAME...")
     self.state.status = "started"
-    while self.curr_round != self.num_rounds:
+    while self.curr_round <= self.num_rounds:
       print('curr_round is: ', self.curr_round)
       await self.playRound()
     await self.endGame()
@@ -43,8 +43,8 @@ class Game:
     await self.showLeaderboard()
     self.state.status = 'ended'
     await self.socketio_instance.emit("end_game", {"leaderboard": self.leaderboard}, room=self.id)
-    await self.socketio_instance.sleep(7)
-    await self.socketio_instance.emit("close_word", room=self.id)
+    # await self.socketio_instance.sleep(7)
+    # await self.socketio_instance.emit("close_word", {}, room=self.id)
     self.curr_round = 1
     for elem in self.leaderboard.keys():
       self.leaderboard[elem] = 0
@@ -130,13 +130,13 @@ class Round:
     
   async def chooseDrawing(self, player):
     options = np.random.choice(self.game.deck, 3, replace=False)
-    # TODO remove those choices from self.deck
 
     self.choice = ""
     # if the player is a bot, choose the word immediately
     if isinstance(player, Bot):
       self.choice = np.random.choice(options)
       print("Bot chose: ", self.choice)
+      self.game.deck.remove(self.choice)
       return
 
     # TODO SOCKET: make choose_word REQUEST PLAYER TO CHOOSE from choices
@@ -151,8 +151,9 @@ class Round:
       seconds_slept += 1
     if (len(self.choice) == 0):
       self.choice = np.random.choice(options)
-      await self.game.socketio_instance.emit("close_word", room=player.sid)
-    print("word is: ", self.choice)
+      await self.game.socketio_instance.emit("close_word", {"word": self.choice}, room=player.sid)
+    print("person chose: ", self.choice)
+    self.game.deck.remove(self.choice)
 
 """
 Class for defining a drawing
@@ -235,15 +236,18 @@ class Drawing:
 
   async def bot_guess(self):
     bot_guesses = []
+    bot_instance = self.game_round.game.bot
+    bot_instance.guess_idx = 0
+    bot_instance.guesses = []
+    print("bot guessing...")
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       roomId = self.game_round.game.id
       sio = self.game_round.game.socketio_instance
       # await sio.sleep(3)
-      bot_instance = self.game_round.game.bot
       guess_interval = 3 # guess every 3 seconds
       if isinstance(bot_instance, Bot) and \
         (self.timer.current_time() > (len(bot_guesses) + 1) * guess_interval):
-        bot_guess = await bot_instance.classify(self.stroke_list)
+        bot_guess = await bot_instance.classify(self.stroke_list, len(self.choice))
         correct = self.checkGuess(bot_instance.sid, 'bot', bot_guess)
         data = {'username': 'bot', 'roomId': roomId, 'guess': bot_guess}
         if correct == 1:
@@ -256,6 +260,7 @@ class Drawing:
             await sio.emit('receive_guess', data, room=roomId)
             bot_guesses.append(bot_guess)
       await sio.sleep(0)
+    print("bot guessing done...", self.timer.check(), len(self.correct_players), len(self.game_round.game.players))
     # await sio.sleep(0)
 
   async def revealLetters(self):
@@ -264,11 +269,12 @@ class Drawing:
 
     sio   = self.game_round.game.socketio_instance
     delay = self.time_limit / revealed_letters  # delay time
+    reveal_interval = 6 # reveal every 6 seconds
     while self.timer.check() and len(self.correct_players) < len(self.game_round.game.players) - 1:
       if (len(self.letters_list) >= len(self.choice) - 2):
         break
       curr_time = self.timer.current_time()
-      if (curr_time > delay / 2 and curr_time > (len(self.letters_list) + 1) * self.time_limit / len(self.choice)):
+      if (curr_time > delay / 2 and curr_time > (len(self.letters_list) + 1) * reveal_interval):
         roomId = self.game_round.game.id
         
         show = np.random.choice(self.shown_letters, 1, replace=False)[0]

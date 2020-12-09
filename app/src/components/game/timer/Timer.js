@@ -26,8 +26,8 @@ export default function Timer(props) {
 
   return (
     <Container className='timer-container'>
-      <div className="time">
-        {timeLeft}s
+      <div className="time" style={{display: 'flex', flexDirection: 'column'}}>
+        <span>{timeLeft}s</span>
       </div>
     </Container>
   );

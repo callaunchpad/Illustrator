@@ -135,6 +135,10 @@ function GameContainer(props) {
 
     socket.on('close_word', function(data) {
       setModalToDisplay(NO_MODAL);
+      console.log(data);
+      if (data && data.word) {
+        alert(`You are drawing: ${data.word}`);
+      }
     });
 
     // the round officialy ends when this is sent
